@@ -1,8 +1,10 @@
-<div align="center">
+# Flutter Liquid Glass Widgets
 
-# Liquid Glass Widgets
+Bring Apple's iOS 26 Liquid Glass to your Flutter app — a comprehensive glass widget library with real shader-based blur, physics-driven jelly animations, and dynamic lighting. Works on every platform out of the box.
 
-Bring Apple's iOS 26 Liquid Glass to your Flutter app — real shader-based blur, physics-driven jelly animations, and dynamic lighting across every platform.
+## Attribution
+
+This package is a fork of [`liquid_glass_widgets`](https://github.com/sdegenaar/liquid_glass_widgets) by [Sebastian Degenaar](https://github.com/sdegenaar), which is in turn built on [`liquid_glass_renderer`](https://github.com/whynotmake-it/flutter_liquid_glass/tree/main/packages/liquid_glass_renderer) by [whynotmake.it](https://github.com/whynotmake-it). Both are MIT-licensed; their original license and copyright notices are preserved throughout this repository. See [`lib/src/renderer/RENDERER_ATTRIBUTION.md`](lib/src/renderer/RENDERER_ATTRIBUTION.md) for renderer-specific vendoring details.
 
 [![pub package](https://img.shields.io/pub/v/liquid_glass_widgets.svg?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/liquid_glass_widgets)
 [![pub points](https://img.shields.io/pub/points/liquid_glass_widgets?label=pub%20points&labelColor=333940)](https://pub.dev/packages/liquid_glass_widgets/score)
@@ -11,22 +13,176 @@ Bring Apple's iOS 26 Liquid Glass to your Flutter app — real shader-based blur
 [![codecov](https://codecov.io/gh/sdegenaar/liquid_glass_widgets/graph/badge.svg)](https://codecov.io/gh/sdegenaar/liquid_glass_widgets)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-<br>
 
-<img src="docs/assets/hero_row1.webp" width="700" alt="Liquid Glass widgets demo — Apple Music and Podcasts">
+https://github.com/user-attachments/assets/2fe28f46-96ad-459d-b816-e6d6001d90de
 
-<br>
+*[Wanderlust](example/showcase/) — a luxury travel showcase built entirely with `liquid_glass_widgets`*
 
-<img src="docs/assets/hero_row2.webp" width="700" alt="Liquid Glass widgets demo — interactive controls and navigation">
 
-</div>
+## Features
+
+- **Comprehensive glass widget library** — containers, interactive controls, inputs, feedback, overlays, and navigation surfaces (see [Widget Categories](#widget-categories))
+- **Liquid Morph Engine** — a standalone physics system powering iOS 26-style liquid morphing. `GlassMenu` is the first consumer; future widgets will use the same engine for consistent liquid transitions. See [`docs/LIQUID_MORPH_ENGINE.md`](docs/LIQUID_MORPH_ENGINE.md)
+- **Real frosted glass** — native two-pass Gaussian blur + shader refraction on Impeller; lightweight shader on Skia/Web
+- **Just works everywhere** — iOS, Android, macOS, Web, Windows, Linux; rendering path chosen automatically
+- **Adaptive quality** *(experimental)* — `GlassAdaptiveScope` benchmarks the device at startup and adjusts quality in real time: `minimal` on slow hardware, `standard` on mid-range, `premium` on fast devices. Degrades on thermal throttle, recovers when cool
+- **Minimal dependencies** — only `equatable`, `flutter_shaders`, and `logging` beyond the Flutter SDK
+- **One-line setup** — `LiquidGlassWidgets.wrap(child: myApp)` handles accessibility bridging, adaptive quality, and global theming; use `GlassScaffold` per screen for automatic backdrop isolation, z-ordering, edge fading, and status bar styling
+- **Content-aware brightness** — glass bars automatically flip between light and dark icons/labels based on the content scrolling behind them. One flag on `GlassScaffold`, matches iOS 26 behaviour
+- **Gyroscope lighting** — `GlassMotionScope` drives specular highlights from any `Stream<double>`
+- **WCAG-compliant by default** — Reduce Motion and Reduce Transparency are respected automatically; no setup required
+
+
+## Examples
+
+### [Wanderlust](example/showcase/) — Luxury Travel Showcase
+
+A premium app demonstrating `liquid_glass_widgets` in a real-world production context — full-bleed imagery, parallax scroll, hero transitions, and a concierge chat interface. **This is the app shown in the video above.**
+
+```bash
+cd example/showcase && flutter pub get && flutter run
+```
+
+
+### [Apple Music Demo](example/lib/apple_music/) — iOS 26 Replica
+
+A recreation of the Apple Music app demonstrating `GlassTabBar.searchable()`, a floating playback pill, and the full iOS 26 navigation model with smooth morphing transitions.
+
+```bash
+cd example && flutter pub get && flutter run -t lib/apple_music/apple_music_demo.dart
+```
+
+
+### [Apple Messages Demo](example/lib/apple_messages/) — iOS 26 Replica
+
+A replica showcasing the **Liquid Morph Engine** via `GlassMenu`. Tap the menu or **Edit** button at the top to see the teardrop open/close physics live.
+
+```bash
+cd example && flutter pub get && flutter run -t lib/apple_messages/apple_messages_demo.dart
+```
+
+
+### [Apple News Demo](example/lib/apple_news/) — iOS 26 Replica
+
+A recreation of the Apple News app demonstrating `GlassTabBar.searchable()` with its morphing search pill, category chips, hero cards, and rounded article tiles.
+
+```bash
+cd example && flutter pub get && flutter run -t lib/apple_news/apple_news_demo.dart
+```
+
+<img width="390" height="844" alt="Apple News Demo" src="https://raw.githubusercontent.com/sdegenaar/liquid_glass_widgets/main/docs/assets/apple_news_demo.jpg" />
+
+### [Widget Showcase](example/) — Full Component Library
+
+A complete catalogue of every glass widget organised by category. Use it to explore components, try live settings, and copy patterns directly into your app.
+
+```bash
+cd example && flutter pub get && flutter run
+```
+
+<img width="390" height="847" alt="Widget Showcase" src="https://raw.githubusercontent.com/sdegenaar/liquid_glass_widgets/main/docs/assets/showcase.jpg" />
+
+
+### [Component Demos](example/lib/demos/) — Copy-Pasteable Examples
+
+Eight focused, self-contained demos — one widget, one file, runnable standalone:
+
+| Demo | Run command (from `example/`) |
+|---|---|
+| `glass_menu_demo.dart` — all 9 menu alignments | `cd example && flutter run -t lib/demos/glass_menu_demo.dart` |
+| `glass_tab_bar_scrollable_demo.dart` — scrollable tab bar | `cd example && flutter run -t lib/demos/glass_tab_bar_scrollable_demo.dart` |
+| `glass_modal_sheet_demo.dart` — peek / half / full states | `cd example && flutter run -t lib/demos/glass_modal_sheet_demo.dart` |
+| `glass_bottom_bar_demo.dart` — magic-lens masking | `cd example && flutter run -t lib/demos/glass_bottom_bar_demo.dart` |
+| `bottom_bar_tab_width_demo.dart` — tabWidth showcase | `cd example && flutter run -t lib/demos/bottom_bar_tab_width_demo.dart` |
+| `searchable_bar_demo.dart` — searchable bar edge cases | `cd example && flutter run -t lib/demos/searchable_bar_demo.dart` |
+| `shape_debug_demo.dart` — GlassButton shapes | `cd example && flutter run -t lib/demos/shape_debug_demo.dart` |
+| `quality_comparison_demo.dart` — premium & standard quality comparison playground | `cd example && flutter run -t lib/demos/quality_comparison_demo.dart` |
+| `nav_bar_patterns_demo.dart` — GlassScaffold layout patterns | `cd example && flutter run -t lib/demos/nav_bar_patterns_demo.dart` |
+| `content_aware_brightness_demo.dart` — light/dark bar adaptation on scroll | `cd example && flutter run -t lib/demos/content_aware_brightness_demo.dart` |
+| `indicator_parity_demo.dart` — all four pill widgets side-by-side with live pinch/expansion/tint sliders | `cd example && flutter run -t lib/demos/indicator_parity_demo.dart` |
+
+
+## Glass vs Content — Design Philosophy
+
+In iOS 26, **glass is reserved for the navigation and control layer** — the
+floating UI that sits above your app's content. Content areas (lists, cards,
+article tiles) stay opaque.
+
+| ✅ Use glass for | ❌ Keep opaque |
+|---|---|
+| Navigation bars, tab bars, toolbars | List cells, table rows |
+| Floating action buttons | Full-screen backgrounds |
+| Sheets, popovers, menus | Scrollable content cards |
+| Toggles, sliders, segmented controls | Article tiles, media players |
+
+**Typical screen composition:**
+
+```
+┌──────────────────────────┐
+│   GlassAppBar (glass)    │  ← Navigation chrome
+├──────────────────────────┤
+│                          │
+│   Opaque content area    │  ← Standard Flutter widgets
+│   (ListView, Cards, etc) │
+│                          │
+├──────────────────────────┤
+│  GlassBottomBar (glass)  │  ← Navigation chrome
+└──────────────────────────┘
+```
+
+Building a Settings screen? Use `GlassScaffold` + `GlassAppBar` for navigation
+chrome, and `CupertinoListTile` or standard Flutter containers for the rows.
+Use `GlassGroupedSection` when you want glass-styled grouped rows.
+
+### Glass Composition Rule: Glass is a Platter, Not a Wrapper
+
+`GlassCard`, `GlassContainer`, and `GlassGroupedSection` are **base surfaces** — they sit
+beneath your content. They are not generic styling wrappers for other glass controls.
+
+| ✅ Place inside GlassCard / GlassContainer | ❌ Do not place inside GlassCard / GlassContainer |
+|---|---|
+| `Text`, `Icon`, `ListTile`, `CupertinoListTile` | `GlassSegmentedControl`, `GlassSlider`, `GlassSwitch` |
+| `GlassListTile`, `GlassDivider` | `GlassButton`, `GlassChip`, `GlassIconButton` |
+| Standard Flutter form widgets | Any other refractive glass widget |
+
+**Why?** `GlassContainer` sets `avoidsRefraction: true` on its children so nested glass
+cannot refract through the outer layer — the inner effect degrades by design. On Impeller
+with `useOwnLayer: true`, the container's own-layer clip also cuts jelly-physics overshots
+from interactive indicators (segmented control pill, slider thumb) during animations.
+
+Interactive glass controls already provide their own surface appearance via `backgroundColor`
+and `indicatorColor` — no outer container is needed for the track or background.
+
+
+## Widget Categories
+
+### Containers
+`GlassCard` · `GlassContainer`\* · `GlassDivider` · `GlassGroupedSection` · `GlassListTile` · `GlassStepper`
+
+\* `GlassContainer` is a low-level building block for custom glass surfaces.
+Most apps should use `GlassCard` or `GlassGroupedSection` instead.
+
+### Interactive
+`GlassButton` · `GlassIconButton` · `GlassChip` · `GlassSwitch` · `GlassSlider` · `GlassSegmentedControl` · `GlassPullDownButton` · `GlassButtonGroup` · `GlassBadge` · `GlassPageControl`
+
+### Input
+`GlassTextField` · `GlassTextArea` · `GlassPasswordField` · `GlassSearchBar` · `GlassPicker` · `GlassFormField`
+
+### Feedback
+`GlassProgressIndicator` · `GlassToast`
+
+### Overlays
+`GlassDialog` · `GlassSheet` · `GlassModalSheet` · `showGlassActionSheet` · `GlassMenu` · `GlassMenuItem` · `GlassMenuDivider` · `GlassMenuLabel` · `GlassPopover`
+
+### Surfaces
+`GlassScaffold` · `GlassAppBar` · `GlassTabBar` (`.bottom` / `.inline` / `.searchable`) · `GlassToolbar` · `GlassContentAwareScope` · `GlassContentAwareContent` · `GlassContentAwareBrightness`
 
 
 ## Installation
 
 ```yaml
 dependencies:
-  liquid_glass_widgets: ^0.29.2
+  liquid_glass_widgets: ^0.26.1
 ```
 
 ```bash
@@ -105,102 +261,6 @@ runApp(LiquidGlassWidgets.wrap(
 ```
 
 Both parameters are optional — omit them and the library uses sensible defaults.
-
-
-## Features
-
-- **Comprehensive glass widget library** — containers, interactive controls, inputs, feedback, overlays, and navigation surfaces (see [Widget Categories](#widget-categories))
-- **Liquid Morph Engine** — a standalone physics system powering iOS 26-style liquid morphing. `GlassMenu` is the first consumer; future widgets will use the same engine for consistent liquid transitions. See [`docs/LIQUID_MORPH_ENGINE.md`](docs/LIQUID_MORPH_ENGINE.md)
-- **Real frosted glass** — native two-pass Gaussian blur + shader refraction on Impeller; lightweight shader on Skia/Web
-- **Just works everywhere** — iOS, Android, macOS, Web, Windows, Linux; rendering path chosen automatically
-- **Adaptive quality** *(experimental)* — `GlassAdaptiveScope` benchmarks the device at startup and adjusts quality in real time: `minimal` on slow hardware, `standard` on mid-range, `premium` on fast devices. Degrades on thermal throttle, recovers when cool
-- **Minimal dependencies** — only `equatable`, `flutter_shaders`, and `logging` beyond the Flutter SDK
-- **One-line setup** — `LiquidGlassWidgets.wrap(child: myApp)` handles accessibility bridging, adaptive quality, and global theming; use `GlassScaffold` per screen for automatic backdrop isolation, z-ordering, edge fading, and status bar styling
-- **Content-aware brightness** — glass bars automatically flip between light and dark icons/labels based on the content scrolling behind them. One flag on `GlassScaffold`, matches iOS 26 behaviour
-- **Gyroscope lighting** — `GlassMotionScope` drives specular highlights from any `Stream<double>`
-- **WCAG-compliant by default** — Reduce Motion and Reduce Transparency are respected automatically; no setup required
-- **Full keyboard & screen reader support** — every interactive widget supports Tab navigation, Space/Enter activation, and VoiceOver/TalkBack semantics out of the box; focus is visualised with an iOS 26-style outset ring
-- **Full RTL (Right-to-Left) support** — layouts, drag directions, tab ordering, and physics auto-reverse for Arabic, Hebrew, and Persian
-
-
-
-
-
-## Glass vs Content — Design Philosophy
-
-In iOS 26, **glass is reserved for the navigation and control layer** — the
-floating UI that sits above your app's content. Content areas (lists, cards,
-article tiles) stay opaque.
-
-| ✅ Use glass for | ❌ Keep opaque |
-|---|---|
-| Navigation bars, tab bars, toolbars | List cells, table rows |
-| Floating action buttons | Full-screen backgrounds |
-| Sheets, popovers, menus | Scrollable content cards |
-| Toggles, sliders, segmented controls | Article tiles, media players |
-
-**Typical screen composition:**
-
-```
-┌──────────────────────────┐
-│   GlassAppBar (glass)    │  ← Navigation chrome
-├──────────────────────────┤
-│                          │
-│   Opaque content area    │  ← Standard Flutter widgets
-│   (ListView, Cards, etc) │
-│                          │
-├──────────────────────────┤
-│  GlassBottomBar (glass)  │  ← Navigation chrome
-└──────────────────────────┘
-```
-
-Building a Settings screen? Use `GlassScaffold` + `GlassAppBar` for navigation
-chrome, and `CupertinoListTile` or standard Flutter containers for the rows.
-Use `GlassGroupedSection` when you want glass-styled grouped rows.
-
-### Glass Composition Rule: Glass is a Platter, Not a Wrapper
-
-`GlassCard`, `GlassContainer`, and `GlassGroupedSection` are **base surfaces** — they sit
-beneath your content. They are not generic styling wrappers for other glass controls.
-
-| ✅ Place inside GlassCard / GlassContainer | ❌ Do not place inside GlassCard / GlassContainer |
-|---|---|
-| `Text`, `Icon`, `ListTile`, `CupertinoListTile` | `GlassSegmentedControl`, `GlassSlider`, `GlassSwitch` |
-| `GlassListTile`, `GlassDivider` | `GlassButton`, `GlassChip`, `GlassIconButton` |
-| Standard Flutter form widgets | Any other refractive glass widget |
-
-**Why?** `GlassContainer` sets `avoidsRefraction: true` on its children so nested glass
-cannot refract through the outer layer — the inner effect degrades by design. On Impeller
-with `useOwnLayer: true`, the container's own-layer clip also cuts jelly-physics overshots
-from interactive indicators (segmented control pill, slider thumb) during animations.
-
-Interactive glass controls already provide their own surface appearance via `backgroundColor`
-and `indicatorColor` — no outer container is needed for the track or background.
-
-
-## Widget Categories
-
-### Containers
-`GlassCard` · `GlassContainer`\* · `GlassDivider` · `GlassGroupedSection` · `GlassListTile` · `GlassStepper`
-
-\* `GlassContainer` is a low-level building block for custom glass surfaces.
-Most apps should use `GlassCard` or `GlassGroupedSection` instead.
-
-### Interactive
-`GlassButton` · `GlassIconButton` · `GlassChip` · `GlassSwitch` · `GlassSlider` · `GlassSegmentedControl` · `GlassPullDownButton` · `GlassButtonGroup` · `GlassBadge` · `GlassPageControl`
-
-### Input
-`GlassTextField` · `GlassTextArea` · `GlassPasswordField` · `GlassSearchBar` · `GlassPicker` · `GlassFormField`
-
-### Feedback
-`GlassProgressIndicator` · `GlassToast`
-
-### Overlays
-`GlassDialog` · `GlassSheet` · `GlassModalSheet` · `showGlassActionSheet` · `GlassMenu` · `GlassMenuItem` · `GlassMenuDivider` · `GlassMenuLabel` · `GlassPopover`
-
-### Surfaces
-`GlassScaffold` · `GlassAppBar` · `GlassTabBar` (`.bottom` / `.inline` / `.searchable`) · `GlassToolbar` · `GlassContentAwareScope` · `GlassContentAwareContent` · `GlassContentAwareBrightness`
-
 
 
 ## Theming
@@ -282,22 +342,14 @@ GlassThemeVariant(
 | Platform | Renderer | Notes |
 |---|---|---|
 | iOS | Impeller (Metal) | Full shader pipeline, chromatic aberration |
-| Android (Vulkan) | Impeller (Vulkan) | Full shader pipeline, chromatic aberration |
-| Android (GLES fallback) | Impeller (GLES) | Full shader pipeline; runtime shader compilation — `initialize()` handles this automatically. See [Android GLES note](#android-gles-note) |
+| Android | Impeller (Vulkan) | Full shader pipeline, chromatic aberration |
 | macOS | Impeller (Metal) | Full shader pipeline, chromatic aberration |
 | Web | CanvasKit | Lightweight fragment shader |
 | Windows | Skia | Lightweight fragment shader |
 | Linux | Skia | Lightweight fragment shader |
 
-Platform detection is automatic — no configuration required. `LiquidGlassWidgets.initialize()` performs an Android-specific GPU warm-up before `runApp` to prevent startup ANRs on GLES devices.
+Platform detection is automatic — no configuration required.
 
-### Android GLES note
-
-A portion of the Android fleet does not support Vulkan and runs Impeller GLES instead. Unlike Vulkan (which uses precompiled SPIR-V), GLES compiles GLSL shader source at runtime on the raster thread. On mid-range SoCs this can take 100–800 ms. If this coincides with Android’s surface setup (`FlutterJNI.nativeSurfaceChanged`), Android may declare an ANR ("Input dispatching timed out").
-
-`LiquidGlassWidgets.initialize()` mitigates this automatically: it draws a 1×1 off-screen frame using the premium glass shaders before `runApp`, forcing GLES compilation behind the native splash screen where it cannot race with surface setup.
-
-Affected hardware includes many budget and older mid-range devices (MediaTek Helio G-series, Qualcomm Snapdragon 4xx/6xx, pre-Android 9 devices). Flagship and recent mid-range devices with full Vulkan support are unaffected — the warm-up completes in ~1–2 ms on Vulkan.
 
 ## Glass Quality Modes
 
@@ -786,55 +838,6 @@ flutter test --tags golden
 Minimal runtime dependencies beyond the Flutter SDK: `equatable`, `flutter_shaders`, and `logging`.
 
 The glass rendering pipeline builds on the open-source work of [whynotmake-it](https://github.com/whynotmake-it). Their [`liquid_glass_renderer`](https://github.com/whynotmake-it/flutter_liquid_glass/tree/main/packages/liquid_glass_renderer) (MIT) has been vendored and extended with bug fixes, performance improvements, and shader optimisations.
-
-
-## Showcase
-
-
-Run any demo directly on your device:
-
-| Demo | Command |
-|------|---------|
-| **Apple Music** | `cd example && flutter run -t lib/apple_music/apple_music_demo.dart` |
-| **Apple Podcasts** | `cd example && flutter run -t lib/apple_podcasts/apple_podcasts_demo.dart` |
-| **Apple News** | `cd example && flutter run -t lib/apple_news/apple_news_demo.dart` |
-| **Apple Messages** | `cd example && flutter run -t lib/apple_messages/apple_messages_demo.dart` |
-| **Widget Showcase** | `cd example && flutter run` |
-| **Wanderlust** | `cd example/showcase && flutter pub get && flutter run` |
-
-### [Wanderlust](example/showcase/) — Luxury Travel Showcase
-
-A premium app demonstrating `liquid_glass_widgets` in a real-world production context — full-bleed imagery, parallax scroll, hero transitions, and a concierge chat interface.
-
-```bash
-cd example/showcase && flutter pub get && flutter run
-```
-
-### [Apple Messages Demo](example/lib/apple_messages/) — iOS 26 Replica
-
-A replica showcasing the **Liquid Morph Engine** via `GlassMenu`. Tap the menu or **Edit** button at the top to see the teardrop open/close physics live.
-
-```bash
-cd example && flutter pub get && flutter run -t lib/apple_messages/apple_messages_demo.dart
-```
-
-### [Component Demos](example/lib/demos/) — Copy-Pasteable Examples
-
-Focused, self-contained demos — one widget, one file, runnable standalone:
-
-| Demo | Run command (from `example/`) |
-|---|---|
-| `glass_menu_demo.dart` — all 9 menu alignments | `cd example && flutter run -t lib/demos/glass_menu_demo.dart` |
-| `glass_tab_bar_scrollable_demo.dart` — scrollable tab bar | `cd example && flutter run -t lib/demos/glass_tab_bar_scrollable_demo.dart` |
-| `glass_modal_sheet_demo.dart` — peek / half / full states | `cd example && flutter run -t lib/demos/glass_modal_sheet_demo.dart` |
-| `glass_bottom_bar_demo.dart` — magic-lens masking | `cd example && flutter run -t lib/demos/glass_bottom_bar_demo.dart` |
-| `bottom_bar_tab_width_demo.dart` — tabWidth showcase | `cd example && flutter run -t lib/demos/bottom_bar_tab_width_demo.dart` |
-| `searchable_bar_demo.dart` — searchable bar edge cases | `cd example && flutter run -t lib/demos/searchable_bar_demo.dart` |
-| `shape_debug_demo.dart` — GlassButton shapes | `cd example && flutter run -t lib/demos/shape_debug_demo.dart` |
-| `quality_comparison_demo.dart` — premium & standard quality | `cd example && flutter run -t lib/demos/quality_comparison_demo.dart` |
-| `nav_bar_patterns_demo.dart` — GlassScaffold layout patterns | `cd example && flutter run -t lib/demos/nav_bar_patterns_demo.dart` |
-| `content_aware_brightness_demo.dart` — light/dark bar adaptation | `cd example && flutter run -t lib/demos/content_aware_brightness_demo.dart` |
-| `indicator_parity_demo.dart` — all four pill widgets side-by-side | `cd example && flutter run -t lib/demos/indicator_parity_demo.dart` |
 
 
 ## Contributing

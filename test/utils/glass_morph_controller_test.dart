@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/utils/glass_morph_controller.dart';
+import 'package:flutter_liquid_glass_widgets/utils/glass_morph_controller.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: mounts a minimal widget that owns a GlassMorphController.

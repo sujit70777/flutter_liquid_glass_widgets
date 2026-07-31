@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/src/renderer/stretch.dart';
+import 'package:flutter_liquid_glass_widgets/src/renderer/stretch.dart';
 
 void main() {
   // ──────────────────────────────────────────────────────────────────────────

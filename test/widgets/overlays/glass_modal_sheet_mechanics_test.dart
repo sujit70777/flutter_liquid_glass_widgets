@@ -4,7 +4,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/widgets/overlays/glass_modal_sheet.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/overlays/glass_modal_sheet.dart';
 
 // The mechanics types are part of the glass_modal_sheet library.
 // We access them via the public API surface: re-exported from the part files.

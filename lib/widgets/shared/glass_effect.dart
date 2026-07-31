@@ -102,7 +102,7 @@ class GlassEffect extends StatefulWidget {
     if (_cachedProgram != null || _isPreparing) return;
     _isPreparing = true;
     const path =
-        'packages/liquid_glass_widgets/shaders/interactive_indicator.frag';
+        'packages/flutter_liquid_glass_widgets/shaders/interactive_indicator.frag';
     const testPath = 'shaders/interactive_indicator.frag';
 
     try {

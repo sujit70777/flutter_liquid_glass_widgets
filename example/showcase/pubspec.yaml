@@ -10,8 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Reference the local liquid_glass_widgets package
-  liquid_glass_widgets:
+  # Reference the local flutter_liquid_glass_widgets package
+  flutter_liquid_glass_widgets:
     path: ../../
 
   cupertino_icons: ^1.0.8

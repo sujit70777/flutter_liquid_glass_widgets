@@ -1,10 +1,10 @@
-import 'package:liquid_glass_widgets/types/glass_quality.dart';
-import 'package:liquid_glass_widgets/widgets/interactive/glass_button.dart';
+import 'package:flutter_liquid_glass_widgets/types/glass_quality.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/interactive/glass_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
 
 import '../../shared/test_helpers.dart';
 

@@ -1,8 +1,8 @@
-import 'package:liquid_glass_widgets/widgets/input/glass_search_bar.dart';
-import 'package:liquid_glass_widgets/widgets/input/glass_text_field.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/input/glass_search_bar.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/input/glass_text_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
 
 import '../../shared/test_helpers.dart';
 

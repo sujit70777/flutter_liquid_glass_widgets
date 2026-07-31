@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
 /// Glass theme settings for the Wanderlust Showcase App
 ///

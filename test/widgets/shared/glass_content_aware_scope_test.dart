@@ -14,7 +14,7 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart' show CupertinoTheme;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
 /// Builds a width×1 RGBA image where each pixel is [color] with [alpha].
 Uint8List _rowOf(int width, Color color, {int alpha = 255}) {

@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../constants/sf_symbols.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────

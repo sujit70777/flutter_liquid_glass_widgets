@@ -1,6 +1,6 @@
 import 'package:alchemist/alchemist.dart';
-import 'package:liquid_glass_widgets/widgets/overlays/glass_dialog.dart';
-import 'package:liquid_glass_widgets/widgets/overlays/glass_sheet.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/overlays/glass_dialog.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/overlays/glass_sheet.dart';
 import 'package:flutter/material.dart';
 
 import '../shared/test_helpers.dart';

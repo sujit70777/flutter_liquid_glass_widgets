@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PlatformView demo — shows GlassTabBar.searchable floating over a WebView

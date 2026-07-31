@@ -87,7 +87,7 @@ class _LiquidGlassBlendGroupState extends State<LiquidGlassBlendGroup> {
           assert(
             renderLink != null,
             '\n'
-            '[liquid_glass_widgets] LiquidGlassBlendGroup could not find an '
+            '[flutter_liquid_glass_widgets] LiquidGlassBlendGroup could not find an '
             'InheritedGeometryRenderLink in the widget tree.\n\n'
             'This happens when GlassQuality.premium is used outside of a '
             'LiquidGlassLayer (or AdaptiveLiquidGlassLayer).\n\n'

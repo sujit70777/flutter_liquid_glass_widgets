@@ -1,4 +1,4 @@
-/// Common constants used throughout the liquid_glass_widgets package.
+/// Common constants used throughout the flutter_liquid_glass_widgets package.
 ///
 /// These constants define default values for glass effects, dimensions,
 /// and other commonly used values to ensure consistency across widgets.

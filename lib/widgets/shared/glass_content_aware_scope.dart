@@ -553,7 +553,7 @@ class GlassContentAwareScopeState extends State<GlassContentAwareScope> {
         FlutterError.reportError(FlutterErrorDetails(
           exception: e,
           stack: stack,
-          library: 'liquid_glass_widgets',
+          library: 'flutter_liquid_glass_widgets',
           context: ErrorDescription(
             'during content-aware brightness sample',
           ),

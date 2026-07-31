@@ -181,7 +181,7 @@ class GlassPerformanceMonitor {
       FlutterErrorDetails(
         exception:
             Exception('GlassQuality.premium performance budget exceeded'),
-        library: 'liquid_glass_widgets',
+        library: 'flutter_liquid_glass_widgets',
         context: ErrorDescription(
           'sustained raster frames > ${rasterBudget.inMilliseconds} ms '
           'while $_premiumCount premium glass surface(s) are active',
