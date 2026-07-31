@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/src/renderer/liquid_glass_renderer.dart';
-import 'package:liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
+import 'package:flutter_liquid_glass_widgets/src/renderer/liquid_glass_renderer.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
 
 /// Standard constraints for golden test scenarios
 final testScenarioConstraints = BoxConstraints.tight(const Size(500, 500));

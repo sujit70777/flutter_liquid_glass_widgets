@@ -10,7 +10,7 @@ Vendored version: **0.2.0-dev.4** (vendored 2026-03-28)
 
 ## Why vendored
 
-Vendoring the renderer source gives `liquid_glass_widgets` full control over the
+Vendoring the renderer source gives `flutter_liquid_glass_widgets` full control over the
 rendering pipeline — bug fixes, improvements, and shader changes can be shipped
 in lock-step with the widget layer without waiting on a separate package release
 cycle. The original work by whynotmake.it remains the foundation; this is a

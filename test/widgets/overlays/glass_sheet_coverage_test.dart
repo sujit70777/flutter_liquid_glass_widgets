@@ -6,8 +6,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-import 'package:liquid_glass_widgets/widgets/overlays/glass_sheet.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/overlays/glass_sheet.dart';
 
 Widget _app(Widget child, {bool dark = false}) => MaterialApp(
       theme: dark ? ThemeData.dark() : ThemeData.light(),

@@ -95,7 +95,7 @@ class ProgressiveBlur extends StatefulWidget {
     // Package-qualified asset path (this shader ships with the package); the
     // bare path is the fallback for unit tests where the package prefix may not
     // resolve.
-    const path = 'packages/liquid_glass_widgets/shaders/progressive_blur.frag';
+    const path = 'packages/flutter_liquid_glass_widgets/shaders/progressive_blur.frag';
     const testPath = 'shaders/progressive_blur.frag';
     try {
       _program = await (_loading ??= _loadProgram(path, testPath));

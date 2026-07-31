@@ -143,7 +143,7 @@ class LightweightLiquidGlass extends StatefulWidget {
   static Future<void> preWarm() async {
     if (_cachedProgram != null || _isPreparing) return;
     _isPreparing = true;
-    const path = 'packages/liquid_glass_widgets/shaders/lightweight_glass.frag';
+    const path = 'packages/flutter_liquid_glass_widgets/shaders/lightweight_glass.frag';
     const testPath = 'shaders/lightweight_glass.frag';
 
     try {

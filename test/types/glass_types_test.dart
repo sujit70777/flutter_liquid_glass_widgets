@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/types/glass_button_style.dart';
-import 'package:liquid_glass_widgets/types/glass_quality.dart';
-import 'package:liquid_glass_widgets/types/glass_specular_sharpness.dart';
+import 'package:flutter_liquid_glass_widgets/types/glass_button_style.dart';
+import 'package:flutter_liquid_glass_widgets/types/glass_quality.dart';
+import 'package:flutter_liquid_glass_widgets/types/glass_specular_sharpness.dart';
 
 void main() {
   // ──────────────────────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@ import 'dart:ui' show FrameTiming;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/utils/glass_performance_monitor.dart';
+import 'package:flutter_liquid_glass_widgets/utils/glass_performance_monitor.dart';
 
 void main() {
   // Reset monitor state before every test so tests are fully isolated.

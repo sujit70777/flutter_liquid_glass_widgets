@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
 /// Developer Regression Reference — GlassScaffold + GlassMenu (0.14.x)
 ///

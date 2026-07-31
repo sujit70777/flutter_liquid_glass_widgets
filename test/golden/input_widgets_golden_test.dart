@@ -1,7 +1,7 @@
 import 'package:alchemist/alchemist.dart';
-import 'package:liquid_glass_widgets/widgets/input/glass_text_field.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/input/glass_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
 
 import '../shared/test_helpers.dart';
 

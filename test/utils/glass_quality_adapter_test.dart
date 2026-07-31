@@ -3,8 +3,8 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-import 'package:liquid_glass_widgets/utils/glass_quality_adapter.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/utils/glass_quality_adapter.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers

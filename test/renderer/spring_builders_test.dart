@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/utils/glass_spring.dart';
+import 'package:flutter_liquid_glass_widgets/utils/glass_spring.dart';
 
 void main() {
   // ──────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,10 @@
-# Liquid Glass Widgets
+# Flutter Liquid Glass Widgets
 
 Bring Apple's iOS 26 Liquid Glass to your Flutter app — a comprehensive glass widget library with real shader-based blur, physics-driven jelly animations, and dynamic lighting. Works on every platform out of the box.
+
+## Attribution
+
+This package is a fork of [`liquid_glass_widgets`](https://github.com/sdegenaar/liquid_glass_widgets) by [Sebastian Degenaar](https://github.com/sdegenaar), which is in turn built on [`liquid_glass_renderer`](https://github.com/whynotmake-it/flutter_liquid_glass/tree/main/packages/liquid_glass_renderer) by [whynotmake.it](https://github.com/whynotmake-it). Both are MIT-licensed; their original license and copyright notices are preserved throughout this repository. See [`lib/src/renderer/RENDERER_ATTRIBUTION.md`](lib/src/renderer/RENDERER_ATTRIBUTION.md) for renderer-specific vendoring details.
 
 [![pub package](https://img.shields.io/pub/v/liquid_glass_widgets.svg?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/liquid_glass_widgets)
 [![pub points](https://img.shields.io/pub/points/liquid_glass_widgets?label=pub%20points&labelColor=333940)](https://pub.dev/packages/liquid_glass_widgets/score)

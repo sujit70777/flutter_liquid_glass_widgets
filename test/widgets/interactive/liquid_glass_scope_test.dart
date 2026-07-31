@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/widgets/interactive/liquid_glass_scope.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/interactive/liquid_glass_scope.dart';
 
 import '../../shared/test_helpers.dart';
 
