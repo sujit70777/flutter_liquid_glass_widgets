@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 
 import '../../theme/glass_theme.dart';
 import '../../theme/glass_theme_data.dart';
+import '../../utils/wcag_luminance.dart';
 
 /// Signature for [GlassContentAwareBrightness.builder].
 ///
@@ -216,38 +217,23 @@ class GlassContentAwareScope extends StatefulWidget {
     var votesLight = 0;
     var votesDark = 0;
     for (final r in cellRects) {
-      final x0 = r.left.floor().clamp(0, width - 1);
-      final x1 = r.right.ceil().clamp(x0 + 1, width);
-      final y0 = r.top.floor().clamp(0, height - 1);
-      final y1 = r.bottom.ceil().clamp(y0 + 1, height);
-      var sumR = 0.0, sumG = 0.0, sumB = 0.0;
-      var n = 0;
-      for (var y = y0; y < y1; y++) {
-        for (var x = x0; x < x1; x++) {
-          final i = (y * width + x) * 4;
-          final a = rgba[i + 3] / 255.0;
-          if (a < 0.02) {
-            // Unpainted pixel — evaluate as the page background.
-            sumR += background.r;
-            sumG += background.g;
-            sumB += background.b;
-          } else {
-            sumR += rgba[i] / 255.0;
-            sumG += rgba[i + 1] / 255.0;
-            sumB += rgba[i + 2] / 255.0;
-          }
-          n++;
-        }
-      }
-      if (n == 0) continue;
-      final cellLuma = _wcagLuma(sumR / n, sumG / n, sumB / n);
+      final cellLuma = averageLuminanceOfRegion(
+        rgba: rgba,
+        width: width,
+        height: height,
+        pixelRect: r,
+        background: background,
+      );
+      if (cellLuma == null) continue;
       // Which glyph reads better over this cell? The light variant uses dark
       // glyphs, the dark variant uses light glyphs. Dark glyphs hold
       // contrast over light AND medium content; light glyphs only win once
       // the content is genuinely dark — so the vote keeps controls light
       // through the medium range and flips late, like the native bars.
-      final lightVariantContrast = _contrast(_lightVariantGlyphLuma, cellLuma);
-      final darkVariantContrast = _contrast(_darkVariantGlyphLuma, cellLuma);
+      final lightVariantContrast =
+          wcagContrastRatio(_lightVariantGlyphLuma, cellLuma);
+      final darkVariantContrast =
+          wcagContrastRatio(_darkVariantGlyphLuma, cellLuma);
       if (lightVariantContrast >= darkVariantContrast) {
         votesLight++;
       } else {
@@ -274,21 +260,6 @@ class GlassContentAwareScope extends StatefulWidget {
   /// WCAG relative luminance of the dark variant's glyphs (white).
   static const double _darkVariantGlyphLuma = 1.0;
 
-  /// WCAG contrast ratio between two relative luminances.
-  static double _contrast(double l1, double l2) {
-    final hi = math.max(l1, l2);
-    final lo = math.min(l1, l2);
-    return (hi + 0.05) / (lo + 0.05);
-  }
-
-  /// WCAG relative luminance from non-linear sRGB channels in `[0, 1]`.
-  static double _wcagLuma(double r, double g, double b) {
-    double lin(double c) => c <= 0.03928
-        ? c / 12.92
-        : math.pow((c + 0.055) / 1.055, 2.4).toDouble();
-    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-  }
-
   @override
   State<GlassContentAwareScope> createState() => GlassContentAwareScopeState();
 }
@@ -305,6 +276,19 @@ class GlassContentAwareScopeState extends State<GlassContentAwareScope> {
   Timer? _scrollTimer;
   bool _samplePending = false;
   bool _sampling = false;
+
+  // Cache of the most recent successful capture, kept around so on-demand
+  // luminance queries (GlassLuminanceSampler) can answer synchronously
+  // between samples instead of awaiting a fresh toImage readback.
+  Uint8List? _lastRgba;
+  int _lastWidth = 0;
+  int _lastHeight = 0;
+  double _lastPixelRatio = 1.0;
+
+  // Set by luminanceAt() to keep sampling alive for on-demand queries (e.g.
+  // GlassContrastRule) even when no GlassContentAwareBrightness control is
+  // registered — cleared once a sample has run.
+  bool _luminanceQueryPending = false;
 
   /// Fraction of a control's height trimmed from the top and bottom before
   /// gridding. Glyphs sit in the vertical middle of a control; edge rows
@@ -369,6 +353,49 @@ class GlassContentAwareScopeState extends State<GlassContentAwareScope> {
   /// Whether the periodic scroll sampler is currently running.
   @visibleForTesting
   bool get isScrollSamplingActive => _scrollTimer != null;
+
+  /// Average WCAG relative luminance behind [globalRect] (global/screen
+  /// coordinates), read from the most recent backdrop capture.
+  ///
+  /// Answers synchronously from the cached capture rather than awaiting a
+  /// fresh `toImage` readback — the underlying content is captured at scroll
+  /// rate (see [GlassContentAwareScope.sampleInterval]), so callers get a
+  /// value that is at most one sample interval stale. Returns null if no
+  /// [GlassContentAwareContent] is registered, no capture has completed yet,
+  /// or [globalRect] doesn't overlap the sampled content region.
+  ///
+  /// Also requests a fresh sample so repeated queries (e.g. from
+  /// `GlassContrastRule` running every frame in a debug overlay) keep the
+  /// capture warm even without any [GlassContentAwareBrightness] control
+  /// registered.
+  double? luminanceAt(Rect globalRect) {
+    _luminanceQueryPending = true;
+    requestSample();
+    final rgba = _lastRgba;
+    if (rgba == null) return null;
+    final boundary = _contentKey?.currentContext?.findRenderObject();
+    if (boundary is! RenderRepaintBoundary || !boundary.attached) return null;
+    final origin = boundary.globalToLocal(globalRect.topLeft);
+    final localRect = (origin & globalRect.size)
+        .intersect(Offset.zero & boundary.size);
+    if (localRect.isEmpty) return null;
+    final background = widget.backgroundColor ??
+        (MediaQuery.maybePlatformBrightnessOf(context) == Brightness.dark
+            ? const Color(0xFF000000)
+            : const Color(0xFFFFFFFF));
+    return averageLuminanceOfRegion(
+      rgba: rgba,
+      width: _lastWidth,
+      height: _lastHeight,
+      pixelRect: Rect.fromLTRB(
+        localRect.left * _lastPixelRatio,
+        localRect.top * _lastPixelRatio,
+        localRect.right * _lastPixelRatio,
+        localRect.bottom * _lastPixelRatio,
+      ),
+      background: background,
+    );
+  }
 
   void _attachContent(GlobalKey boundaryKey) {
     assert(
@@ -448,7 +475,13 @@ class GlassContentAwareScopeState extends State<GlassContentAwareScope> {
   }
 
   Future<void> _sample() async {
-    if (!mounted || _sampling || _subscriptions.isEmpty) return;
+    final hadLuminanceDemand = _luminanceQueryPending;
+    _luminanceQueryPending = false;
+    if (!mounted ||
+        _sampling ||
+        (_subscriptions.isEmpty && !hadLuminanceDemand)) {
+      return;
+    }
     final boundary = _contentKey?.currentContext?.findRenderObject();
     if (boundary is! RenderRepaintBoundary ||
         !boundary.hasSize ||
@@ -499,12 +532,18 @@ class GlassContentAwareScopeState extends State<GlassContentAwareScope> {
         minCellExtent = math.min(minCellExtent, cellH);
         work.add((sub, cells));
       }
-      if (work.isEmpty) return;
+      if (work.isEmpty && !hadLuminanceDemand) return;
 
       // Downscale so a cell maps to ~16 physical pixels — enough for a
-      // stable average, cheap enough to read back at scroll rates.
-      final pixelRatio =
-          (_kTargetCellPixels / math.max(minCellExtent, 1.0)).clamp(0.05, 0.5);
+      // stable average, cheap enough to read back at scroll rates. With no
+      // registered controls (a pure on-demand luminance query), fall back to
+      // a typical text-line extent so the capture resolution stays sane.
+      final pixelRatio = (_kTargetCellPixels /
+              math.max(
+                minCellExtent.isFinite ? minCellExtent : 20.0,
+                1.0,
+              ))
+          .clamp(0.05, 0.5);
       final image = await boundary.toImage(pixelRatio: pixelRatio);
       final width = image.width;
       final height = image.height;
@@ -513,6 +552,10 @@ class GlassContentAwareScopeState extends State<GlassContentAwareScope> {
       image.dispose();
       if (!mounted || byteData == null) return;
       final rgba = byteData.buffer.asUint8List();
+      _lastRgba = rgba;
+      _lastWidth = width;
+      _lastHeight = height;
+      _lastPixelRatio = pixelRatio;
       final background = widget.backgroundColor ??
           (MediaQuery.maybePlatformBrightnessOf(context) == Brightness.dark
               // Whitelisted: Raw black/white used for contrast detection math, not theming.
