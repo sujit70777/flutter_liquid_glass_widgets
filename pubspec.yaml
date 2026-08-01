@@ -34,6 +34,17 @@ dependencies:
   flutter_shaders: ^0.1.3
   logging: ^1.3.0
   meta: ">=1.17.0 <2.0.0"
+  # Only imported by lib/glass_a11y_lens_bridge.dart (not the main
+  # liquid_glass_widgets.dart barrel) — apps that don't import that file
+  # never touch GlassContrastRule, but this still resolves for every
+  # consumer at `pub get` time since Dart has no true optional/peer
+  # dependencies. flutter_a11y_lens isn't published to pub.dev yet (v0.0.1),
+  # hence the git dependency; NOTE this blocks `flutter pub publish` for
+  # this package until flutter_a11y_lens is itself on pub.dev — switch this
+  # to a version constraint at that point.
+  flutter_a11y_lens:
+    git:
+      url: https://github.com/sujit70777/flutter_a11y_lens.git
 dev_dependencies:
   alchemist: ^0.14.0
   flutter_test:
