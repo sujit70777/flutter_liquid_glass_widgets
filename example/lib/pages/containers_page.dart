@@ -16,27 +16,17 @@ class ContainersPage extends StatelessWidget {
           ? GlassStatusBarStyle.light
           : GlassStatusBarStyle.dark,
       child: GlassScaffold(
-        appBar: GlassAppBar(
-          leading: GlassButton(
-            quality: GlassQuality.premium,
-            icon: Icon(CupertinoIcons.back),
-            onTap: () => Navigator.of(context).pop(),
-            width: 40,
-            height: 40,
-            iconSize: 20,
-          ),
-        ),
         body: Material(
           type: MaterialType.transparency,
           child: GlassScrollEdgeEffect(
-            topFadeHeight: MediaQuery.paddingOf(context).top + 44 + 40,
+            topFadeHeight: MediaQuery.paddingOf(context).top + 40,
             fadeBottom: false,
             child: CustomScrollView(
               slivers: [
                 // Space for the app bar + safe area
                 SliverToBoxAdapter(
                   child: SizedBox(
-                    height: MediaQuery.paddingOf(context).top + 44,
+                    height: MediaQuery.paddingOf(context).top,
                   ),
                 ),
                 // ── Large page title (iOS 26 inline style) ────────────

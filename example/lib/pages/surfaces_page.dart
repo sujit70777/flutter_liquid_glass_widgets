@@ -1,4 +1,5 @@
 import 'package:liquid_glass_widgets_example/constants/glass_settings.dart';
+import 'package:liquid_glass_widgets_example/main.dart' show DestinationScope;
 
 import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,11 +16,13 @@ class SurfacesPage extends StatelessWidget {
           ? GlassStatusBarStyle.light
           : GlassStatusBarStyle.dark,
       child: GlassScaffold(
+        // Kept intentionally — this is a live demo of GlassAppBar itself
+        // (see the "GlassAppBar" section below), not just page chrome.
         appBar: GlassAppBar(
           leading: GlassButton(
             quality: GlassQuality.premium,
             icon: Icon(CupertinoIcons.back),
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => DestinationScope.of(context).close(),
             width: 40,
             height: 40,
             iconSize: 20,
