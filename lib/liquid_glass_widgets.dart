@@ -31,6 +31,7 @@ export 'theme/glass_theme_data.dart';
 export 'theme/glass_theme_settings.dart';
 
 // Types
+export 'types/glass_command.dart'; // GlassCommand — GlassCommandPalette entry
 export 'types/glass_quality.dart';
 export 'types/glass_quality_change_reason.dart'; // GlassQualityChangeReason enum
 export 'src/types/glass_interaction_behavior.dart'; // GlassInteractionBehavior enum
@@ -62,6 +63,7 @@ export 'utils/glass_morph_controller.dart'
         LiquidMorphState,
         MorphPhase;
 export 'utils/glass_spring.dart';
+export 'utils/glass_fuzzy_match.dart'; // glassFuzzyScore — used by GlassCommandPalette
 export 'utils/glass_performance_monitor.dart'
     show GlassPerformanceMonitor; // PremiumGlassTracker is internal
 
@@ -97,6 +99,8 @@ export 'types/glass_button_style.dart';
 export 'widgets/feedback/glass_progress_indicator.dart';
 // Widgets - Overlays
 export 'widgets/overlays/glass_action_sheet.dart';
+export 'widgets/overlays/glass_command_palette.dart'
+    show GlassCommandPalette, GlassCommandPaletteScope;
 export 'widgets/overlays/glass_dialog.dart';
 export 'widgets/overlays/glass_menu.dart';
 export 'widgets/overlays/glass_menu_item.dart';

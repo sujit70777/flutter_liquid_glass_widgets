@@ -9,6 +9,7 @@ import 'package:liquid_glass_widgets_example/apple_news/apple_news_demo.dart';
 import 'package:liquid_glass_widgets_example/apple_podcasts/apple_podcasts_demo.dart';
 import 'package:liquid_glass_widgets_example/apple_lockscreen/keypad_lock_screen_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/nav_bar_patterns_demo.dart';
+import 'package:liquid_glass_widgets_example/demos/glass_command_palette_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/glass_menu_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/glass_modal_sheet_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/video_player_demo.dart';
@@ -800,7 +801,14 @@ class _ExamplesTab extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: 14),
-                      Expanded(child: SizedBox()),
+                      Expanded(
+                        child: _SmallDemoCard(
+                          title: 'Command Palette',
+                          icon: CupertinoIcons.command,
+                          color: const Color(0xFF64D2FF),
+                          destination: const GlassCommandPaletteDemo(),
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 14),
