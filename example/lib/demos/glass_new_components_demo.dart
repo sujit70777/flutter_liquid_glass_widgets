@@ -9,6 +9,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import 'package:liquid_glass_widgets_example/theme/app_theme.dart';
+
 class GlassNewComponentsDemo extends StatefulWidget {
   const GlassNewComponentsDemo({super.key});
 
@@ -26,7 +28,7 @@ class _GlassNewComponentsDemoState extends State<GlassNewComponentsDemo> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/wallpaper.jpg', fit: BoxFit.cover),
+          Image.asset('assets/wallpaper_dark.jpg', fit: BoxFit.cover),
           Container(color: CupertinoColors.black.withValues(alpha: 0.25)),
           SafeArea(
             child: SingleChildScrollView(
@@ -34,14 +36,9 @@ class _GlassNewComponentsDemoState extends State<GlassNewComponentsDemo> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Long-tail Components',
-                    style: TextStyle(
-                      color: CupertinoColors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
-                    ),
+                    style: AppType.display(isDark: true, size: 26, color: CupertinoColors.white),
                   ),
                   const SizedBox(height: 24),
 

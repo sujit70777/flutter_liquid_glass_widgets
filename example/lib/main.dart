@@ -32,6 +32,7 @@ import 'package:liquid_glass_widgets_example/pages/input_page.dart';
 import 'package:liquid_glass_widgets_example/pages/interactive_page.dart';
 import 'package:liquid_glass_widgets_example/pages/overlays_page.dart';
 import 'package:liquid_glass_widgets_example/pages/surfaces_page.dart';
+import 'package:liquid_glass_widgets_example/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -219,25 +220,39 @@ class _ExploreTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Liquid Glass',
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w700,
-                      color: CupertinoColors.label.resolveFrom(context),
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'iOS 26 Widget Toolkit',
-                    style: TextStyle(
-                      fontSize: 17,
-                      color:
-                          CupertinoColors.secondaryLabel.resolveFrom(context),
-                      letterSpacing: -0.2,
-                    ),
-                  ),
+                  Builder(builder: (context) {
+                    final isDark = CupertinoTheme.of(context).brightness ==
+                        Brightness.dark;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'FLUTTER WIDGET KIT · OPEN SOURCE',
+                          style: AppType.eyebrow(isDark: isDark),
+                        ),
+                        const SizedBox(height: 10),
+                        ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: AuroraColors.aurora,
+                          ).createShader(bounds),
+                          child: Text(
+                            'Liquid Glass',
+                            style: AppType.display(
+                              isDark: isDark,
+                              size: 40,
+                              color: CupertinoColors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Real shader-based blur & refraction for Flutter — '
+                          'not a BackdropFilter trick.',
+                          style: AppType.body(isDark: isDark, size: 16),
+                        ),
+                      ],
+                    );
+                  }),
                   SizedBox(height: 32),
 
                   // ── Featured demo — large card ────────────────────
@@ -330,11 +345,9 @@ class _ExploreTab extends StatelessWidget {
                   // ── Staggered widget preview ──────────────────────
                   Text(
                     'Widget Catalog',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: CupertinoColors.label.resolveFrom(context),
-                      letterSpacing: -0.3,
+                    style: AppType.heading(
+                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      size: 21,
                     ),
                   ),
                   SizedBox(height: 16),
@@ -351,6 +364,7 @@ class _ExploreTab extends StatelessWidget {
                             icon: CupertinoIcons.rectangle_3_offgrid_fill,
                             title: 'Surfaces',
                             subtitle: 'AppBar · BottomBar · SearchBar · TabBar',
+                            color: AuroraColors.violet,
                             destination: const SurfacesPage(),
                           ),
                         ),
@@ -365,6 +379,7 @@ class _ExploreTab extends StatelessWidget {
                                 icon: CupertinoIcons.hand_point_right_fill,
                                 title: 'Interactive',
                                 subtitle: 'Button · Switch · Slider',
+                                color: AuroraColors.magenta,
                                 height: 120,
                                 destination: const InteractivePage(),
                               ),
@@ -373,6 +388,7 @@ class _ExploreTab extends StatelessWidget {
                                 icon: CupertinoIcons.hourglass,
                                 title: 'Feedback',
                                 subtitle: 'Progress · Toast',
+                                color: AuroraColors.amber,
                                 height: 120,
                                 destination: const FeedbackPage(),
                               ),
@@ -392,6 +408,7 @@ class _ExploreTab extends StatelessWidget {
                           icon: CupertinoIcons.keyboard,
                           title: 'Input',
                           subtitle: 'TextField · SearchBar',
+                          color: AuroraColors.cyan,
                           height: 120,
                           destination: const InputPage(),
                         ),
@@ -402,6 +419,7 @@ class _ExploreTab extends StatelessWidget {
                           icon: CupertinoIcons.square_stack_fill,
                           title: 'Overlays',
                           subtitle: 'Sheet · Dialog · Menu · Popover',
+                          color: AuroraColors.indigo,
                           height: 120,
                           destination: const OverlaysPage(),
                         ),
@@ -418,6 +436,7 @@ class _ExploreTab extends StatelessWidget {
                           icon: CupertinoIcons.square_stack_3d_up_fill,
                           title: 'Containers',
                           subtitle: 'Card · Panel · Container',
+                          color: AuroraColors.emerald,
                           height: 100,
                           destination: const ContainersPage(),
                         ),
@@ -457,20 +476,16 @@ class _WidgetsTab extends StatelessWidget {
                 children: [
                   Text(
                     'Widgets',
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w700,
-                      color: CupertinoColors.label.resolveFrom(context),
-                      letterSpacing: -0.5,
+                    style: AppType.display(
+                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      size: 32,
                     ),
                   ),
                   SizedBox(height: 8),
                   Text(
                     'Browse the full widget catalog.',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color:
-                          CupertinoColors.secondaryLabel.resolveFrom(context),
+                    style: AppType.body(
+                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -578,20 +593,16 @@ class _DemosTab extends StatelessWidget {
                 children: [
                   Text(
                     'Demos',
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w700,
-                      color: CupertinoColors.label.resolveFrom(context),
-                      letterSpacing: -0.5,
+                    style: AppType.display(
+                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      size: 32,
                     ),
                   ),
                   SizedBox(height: 8),
                   Text(
                     'Polished Apple app reproductions.',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color:
-                          CupertinoColors.secondaryLabel.resolveFrom(context),
+                    style: AppType.body(
+                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -689,20 +700,16 @@ class _ExamplesTab extends StatelessWidget {
                 children: [
                   Text(
                     'Examples',
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w700,
-                      color: CupertinoColors.label.resolveFrom(context),
-                      letterSpacing: -0.5,
+                    style: AppType.display(
+                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      size: 32,
                     ),
                   ),
                   SizedBox(height: 8),
                   Text(
                     'Widget modes & configuration reference.',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color:
-                          CupertinoColors.secondaryLabel.resolveFrom(context),
+                    style: AppType.body(
+                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -922,12 +929,15 @@ void _openDemo(BuildContext context, Widget destination) {
   nav.push(CupertinoPageRoute<void>(builder: (_) => destination));
 }
 
-/// Staggered glass catalog card — variable height, glass background.
+/// Staggered glass catalog card — variable height, real glass shader
+/// background with a colored elevation shadow underneath so it visibly
+/// lifts off the page (in both light and dark mode) rather than reading flat.
 class _StaggeredCatalogCard extends StatelessWidget {
   const _StaggeredCatalogCard({
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.color,
     this.height,
     required this.destination,
   });
@@ -935,54 +945,61 @@ class _StaggeredCatalogCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final Color color;
   final double? height;
   final Widget destination;
 
   @override
   Widget build(BuildContext context) {
-    Widget button = GlassButton.custom(
-      onTap: () => _openDemo(context, destination),
-      width: double.infinity,
-      height: height ?? 254, // tall card default
-      shape: const LiquidRoundedSuperellipse(borderRadius: 12),
-      interactionScale: 0.97,
-      stretch: 0.15,
-      alignment: Alignment.topLeft,
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                size: 24),
-            const Spacer(),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.label.resolveFrom(context),
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: isDark ? 0.28 : 0.32),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
+          ),
+          BoxShadow(
+            color: CupertinoColors.black
+                .withValues(alpha: isDark ? 0.5 : 0.10),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: GlassButton.custom(
+        onTap: () => _openDemo(context, destination),
+        width: double.infinity,
+        height: height ?? 254, // tall card default
+        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+        interactionScale: 0.97,
+        stretch: 0.15,
+        alignment: Alignment.topLeft,
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AuroraIconChip(icon: icon, color: color, size: 30),
+              const Spacer(),
+              Text(title, style: AppType.heading(isDark: isDark, size: 16)),
+              SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: AppType.body(isDark: isDark, size: 12),
               ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
-
-    return button;
   }
 }
 
-/// Small demo card with accent color.
+/// Small demo card — glass panel with an accent icon chip, "Aurora Glass"
+/// pattern (restrained tint, not a full-bleed saturated fill).
 class _SmallDemoCard extends StatelessWidget {
   const _SmallDemoCard({
     required this.title,
@@ -998,34 +1015,21 @@ class _SmallDemoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => _openDemo(context, destination),
       child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              color.withValues(alpha: 0.7),
-              color,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: EdgeInsets.all(16),
+        height: 104,
+        decoration: auroraPanelDecoration(isDark: isDark, radius: 18, tint: color),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: CupertinoColors.white, size: 22),
+            AuroraIconChip(icon: icon, color: color, size: 34),
             const Spacer(),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: CupertinoColors.white,
-              ),
+              style: AppType.label(isDark: isDark, size: 14.5),
             ),
           ],
         ),
@@ -1034,7 +1038,8 @@ class _SmallDemoCard extends StatelessWidget {
   }
 }
 
-/// Large demo card with gradient.
+/// Large demo card — glass panel with an accent icon chip and a subtle
+/// gradient-tinted top hairline instead of a full-bleed saturated fill.
 class _LargeDemoCard extends StatelessWidget {
   const _LargeDemoCard({
     required this.title,
@@ -1052,19 +1057,14 @@ class _LargeDemoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
+    final accent = gradient.first;
     return GestureDetector(
       onTap: () => _openDemo(context, destination),
       child: Container(
-        height: 120,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: gradient,
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        padding: EdgeInsets.all(20),
+        height: 124,
+        decoration: auroraPanelDecoration(isDark: isDark, radius: 22, tint: accent),
+        padding: const EdgeInsets.all(20),
         child: Row(
           children: [
             Expanded(
@@ -1072,36 +1072,17 @@ class _LargeDemoCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: CupertinoColors.white,
-                    ),
-                  ),
-                  SizedBox(height: 4),
+                  Text(title, style: AppType.heading(isDark: isDark, size: 19)),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: CupertinoColors.white.withValues(alpha: 0.7),
-                      height: 1.3,
-                    ),
+                    style: AppType.body(isDark: isDark, size: 13, height: 1.3),
                   ),
                 ],
               ),
             ),
-            SizedBox(width: 16),
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: CupertinoColors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: CupertinoColors.white, size: 26),
-            ),
+            const SizedBox(width: 16),
+            AuroraIconChip(icon: icon, color: accent, size: 52),
           ],
         ),
       ),
