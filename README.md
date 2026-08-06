@@ -6,17 +6,15 @@ Bring Apple's iOS 26 Liquid Glass to your Flutter app — a comprehensive glass 
 
 This package is a fork of [`liquid_glass_widgets`](https://github.com/sdegenaar/liquid_glass_widgets) by [Sebastian Degenaar](https://github.com/sdegenaar), which is in turn built on [`liquid_glass_renderer`](https://github.com/whynotmake-it/flutter_liquid_glass/tree/main/packages/liquid_glass_renderer) by [whynotmake.it](https://github.com/whynotmake-it). Both are MIT-licensed; their original license and copyright notices are preserved throughout this repository. See [`lib/src/renderer/RENDERER_ATTRIBUTION.md`](lib/src/renderer/RENDERER_ATTRIBUTION.md) for renderer-specific vendoring details.
 
-[![pub package](https://img.shields.io/pub/v/liquid_glass_widgets.svg?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/liquid_glass_widgets)
-[![pub points](https://img.shields.io/pub/points/liquid_glass_widgets?label=pub%20points&labelColor=333940)](https://pub.dev/packages/liquid_glass_widgets/score)
-[![likes](https://img.shields.io/pub/likes/liquid_glass_widgets?label=likes&labelColor=333940)](https://pub.dev/packages/liquid_glass_widgets/score)
-[![CI](https://github.com/sdegenaar/liquid_glass_widgets/actions/workflows/ci.yml/badge.svg)](https://github.com/sdegenaar/liquid_glass_widgets/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/sdegenaar/liquid_glass_widgets/graph/badge.svg)](https://codecov.io/gh/sdegenaar/liquid_glass_widgets)
+[![pub package](https://img.shields.io/pub/v/flutter_liquid_glass_widgets.svg?label=pub.dev&labelColor=333940&logo=dart)](https://pub.dev/packages/flutter_liquid_glass_widgets)
+[![pub points](https://img.shields.io/pub/points/flutter_liquid_glass_widgets?label=pub%20points&labelColor=333940)](https://pub.dev/packages/flutter_liquid_glass_widgets/score)
+[![likes](https://img.shields.io/pub/likes/flutter_liquid_glass_widgets?label=likes&labelColor=333940)](https://pub.dev/packages/flutter_liquid_glass_widgets/score)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 
 https://github.com/user-attachments/assets/2fe28f46-96ad-459d-b816-e6d6001d90de
 
-*[Wanderlust](example/showcase/) — a luxury travel showcase built entirely with `liquid_glass_widgets`*
+*[Wanderlust](example/showcase/) — a luxury travel showcase built entirely with `flutter_liquid_glass_widgets`*
 
 
 ## Features
@@ -37,7 +35,7 @@ https://github.com/user-attachments/assets/2fe28f46-96ad-459d-b816-e6d6001d90de
 
 ### [Wanderlust](example/showcase/) — Luxury Travel Showcase
 
-A premium app demonstrating `liquid_glass_widgets` in a real-world production context — full-bleed imagery, parallax scroll, hero transitions, and a concierge chat interface. **This is the app shown in the video above.**
+A premium app demonstrating `flutter_liquid_glass_widgets` in a real-world production context — full-bleed imagery, parallax scroll, hero transitions, and a concierge chat interface. **This is the app shown in the video above.**
 
 ```bash
 cd example/showcase && flutter pub get && flutter run
@@ -70,7 +68,7 @@ A recreation of the Apple News app demonstrating `GlassTabBar.searchable()` with
 cd example && flutter pub get && flutter run -t lib/apple_news/apple_news_demo.dart
 ```
 
-<img width="390" height="844" alt="Apple News Demo" src="https://raw.githubusercontent.com/sdegenaar/liquid_glass_widgets/main/docs/assets/apple_news_demo.jpg" />
+<img width="390" height="844" alt="Apple News Demo" src="https://raw.githubusercontent.com/sujit70777/flutter_liquid_glass_widgets/main/docs/assets/apple_news_demo.jpg" />
 
 ### [Widget Showcase](example/) — Full Component Library
 
@@ -80,7 +78,7 @@ A complete catalogue of every glass widget organised by category. Use it to expl
 cd example && flutter pub get && flutter run
 ```
 
-<img width="390" height="847" alt="Widget Showcase" src="https://raw.githubusercontent.com/sdegenaar/liquid_glass_widgets/main/docs/assets/showcase.jpg" />
+<img width="390" height="847" alt="Widget Showcase" src="https://raw.githubusercontent.com/sujit70777/flutter_liquid_glass_widgets/main/docs/assets/showcase.jpg" />
 
 
 ### [Component Demos](example/lib/demos/) — Copy-Pasteable Examples
@@ -157,32 +155,38 @@ and `indicatorColor` — no outer container is needed for the track or backgroun
 ## Widget Categories
 
 ### Containers
-`GlassCard` · `GlassContainer`\* · `GlassDivider` · `GlassGroupedSection` · `GlassListTile` · `GlassStepper`
+`GlassCard` · `GlassContainer`\* · `GlassAvatar` · `GlassChart` · `GlassDivider` · `GlassGroupedSection` · `GlassListTile` · `GlassStepper` · `GlassTimeline`
 
 \* `GlassContainer` is a low-level building block for custom glass surfaces.
 Most apps should use `GlassCard` or `GlassGroupedSection` instead.
 
 ### Interactive
-`GlassButton` · `GlassIconButton` · `GlassChip` · `GlassSwitch` · `GlassSlider` · `GlassSegmentedControl` · `GlassPullDownButton` · `GlassButtonGroup` · `GlassBadge` · `GlassPageControl`
+`GlassButton` · `GlassIconButton` · `GlassChip` · `GlassSwitch` · `GlassSlider` · `GlassSegmentedControl` · `GlassPullDownButton` · `GlassButtonGroup` · `GlassBadge` · `GlassPageControl` · `LiquidGlassScope`
 
 ### Input
-`GlassTextField` · `GlassTextArea` · `GlassPasswordField` · `GlassSearchBar` · `GlassPicker` · `GlassFormField`
+`GlassTextField` · `GlassTextArea` · `GlassPasswordField` · `GlassSearchBar` · `GlassPicker` · `GlassCalendarPicker` · `GlassRatingBar` · `GlassFormField`
 
 ### Feedback
-`GlassProgressIndicator` · `GlassToast`
+`GlassProgressIndicator` · `GlassSkeletonLoader` · `GlassToast`
 
 ### Overlays
-`GlassDialog` · `GlassSheet` · `GlassModalSheet` · `showGlassActionSheet` · `GlassMenu` · `GlassMenuItem` · `GlassMenuDivider` · `GlassMenuLabel` · `GlassPopover`
+`GlassDialog` · `GlassSheet` · `GlassModalSheet` · `showGlassActionSheet` · `GlassMenu` · `GlassMenuItem` · `GlassMenuDivider` · `GlassMenuLabel` · `GlassPopover` · `GlassCommandPalette` (⌘K / Ctrl+K, fuzzy search)
 
 ### Surfaces
-`GlassScaffold` · `GlassAppBar` · `GlassTabBar` (`.bottom` / `.inline` / `.searchable`) · `GlassToolbar` · `GlassContentAwareScope` · `GlassContentAwareContent` · `GlassContentAwareBrightness`
+`GlassScaffold` · `GlassAppBar` · `GlassTabBar` (`.bottom` / `.inline` / `.searchable`) · `GlassToolbar` · `GlassLargeTitle` · `GlassDock` (macOS-style magnifying dock) · `GlassIsolationScope` · `GlassContentAwareScope` · `GlassContentAwareContent` · `GlassContentAwareBrightness`
+
+### Accessibility
+`GlassA11yScope` · `AdaptiveGlassText` · `GlassLuminanceSampler` · `GlassAccessibilityScope` · `GlassContrastRule` (optional [`flutter_a11y_lens`](https://pub.dev/packages/flutter_a11y_lens) bridge — samples the real, sampled backdrop behind glass text instead of a static ancestor-color check)
+
+### Theming & Performance
+`GlassTheme` · `GlassThemeData` · `GlassThemePresets` (`.frostedDark` / `.clearLight` / `.tintedBrand`) · `GlassInteractionSettings` · `GlassAdaptiveScope` · `GlassPerformanceMonitor`
 
 
 ## Installation
 
 ```yaml
 dependencies:
-  liquid_glass_widgets: ^0.26.1
+  flutter_liquid_glass_widgets: ^0.0.1
 ```
 
 ```bash
@@ -204,7 +208,7 @@ Two steps — that's the entire setup:
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -568,7 +572,7 @@ Each value maps to a fixed power-of-2 exponent. The GPU uses a zero-transcendent
 
 ### Automatic Quality Adaptation *(experimental)*
 
-> 📊 **`GlassAdaptiveScope` is `@experimental`** — its timing thresholds need more real-device data to be finalised. If you use `adaptiveQuality: true`, please share your device model, Flutter version, and observed P75 ms in our [Threshold Calibration Discussion](https://github.com/sdegenaar/liquid_glass_widgets/discussions). See [`docs/ADAPTIVE_QUALITY.md`](docs/ADAPTIVE_QUALITY.md) for current threshold values and the reporting snippet.
+> 📊 **`GlassAdaptiveScope` is `@experimental`** — its timing thresholds need more real-device data to be finalised. If you use `adaptiveQuality: true`, please share your device model, Flutter version, and observed P75 ms via an [issue](https://github.com/sujit70777/flutter_liquid_glass_widgets/issues). See [`docs/ADAPTIVE_QUALITY.md`](docs/ADAPTIVE_QUALITY.md) for current threshold values and the reporting snippet.
 
 `GlassAdaptiveScope` (enabled via `wrap(adaptiveQuality: true)`) automatically
 benchmarks the device at startup and adjusts quality in real time:
@@ -856,6 +860,6 @@ MIT — see the [LICENSE](LICENSE) file for details.
 
 ## Links
 
-- [pub.dev](https://pub.dev/packages/liquid_glass_widgets)
-- [Repository](https://github.com/sdegenaar/liquid_glass_widgets)
-- [Issue Tracker](https://github.com/sdegenaar/liquid_glass_widgets/issues)
+- [pub.dev](https://pub.dev/packages/flutter_liquid_glass_widgets)
+- [Repository](https://github.com/sujit70777/flutter_liquid_glass_widgets)
+- [Issue Tracker](https://github.com/sujit70777/flutter_liquid_glass_widgets/issues)

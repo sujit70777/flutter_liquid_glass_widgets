@@ -1,3 +1,81 @@
+# 0.0.1
+
+Initial release of **`flutter_liquid_glass_widgets`** — a fork of
+[sdegenaar/liquid_glass_widgets](https://github.com/sdegenaar/liquid_glass_widgets),
+itself built on
+[whynotmake-it/liquid_glass_renderer](https://github.com/whynotmake-it/flutter_liquid_glass/tree/main/packages/liquid_glass_renderer).
+See the README's Attribution section for full credit; the detailed
+pre-fork development history (as `liquid_glass_widgets`) is preserved below
+for reference.
+
+## ✨ Full Widget Catalog
+
+**Containers**
+`GlassCard`, `GlassContainer`, `GlassAvatar`, `GlassChart`, `GlassDivider`,
+`GlassGroupedSection`, `GlassListTile`, `GlassStepper`, `GlassTimeline`
+
+**Input**
+`GlassTextField`, `GlassTextArea`, `GlassPasswordField`, `GlassFormField`,
+`GlassSearchBar`, `GlassPicker`, `GlassCalendarPicker`, `GlassRatingBar`
+
+**Interactive**
+`GlassButton`, `GlassIconButton`, `GlassButtonGroup`, `GlassChip`,
+`GlassBadge`, `GlassSwitch`, `GlassSlider`, `GlassSegmentedControl`,
+`GlassPageControl`, `GlassPullDownButton`, `LiquidGlassScope`
+
+**Feedback**
+`GlassProgressIndicator`, `GlassSkeletonLoader`, `GlassToast`
+
+**Overlays**
+`GlassDialog`, `GlassActionSheet`, `GlassSheet`, `GlassModalSheet`,
+`GlassMenu`, `GlassPopover`, `GlassCommandPalette`
+
+**Navigation & Surfaces**
+`GlassScaffold`, `GlassAppBar`, `GlassLargeTitle`, `GlassBottomBar`,
+`GlassSearchableBottomBar`, `GlassTabBar`, `GlassToolbar`, `GlassDock`,
+`GlassIsolationScope`
+
+**Accessibility**
+`GlassA11yScope`, `AdaptiveGlassText`, `GlassLuminanceSampler`,
+`GlassContentAwareScope`/`GlassContentAwareContent`/`GlassContentAwareBrightness`,
+`GlassAccessibilityScope`, and `GlassContrastRule` — a
+[`flutter_a11y_lens`](https://pub.dev/packages/flutter_a11y_lens) integration
+bridging real sampled-backdrop contrast checking into that package's rule
+engine (`package:flutter_liquid_glass_widgets/glass_a11y_lens_bridge.dart`,
+a separate opt-in entry point, not part of the main import).
+
+**Theming**
+`GlassTheme`, `GlassThemeData`, `GlassThemePresets`
+(`.frostedDark` / `.clearLight` / `.tintedBrand(color)`),
+`GlassInteractionSettings`
+
+**Adaptive performance**
+`GlassAdaptiveScope` (auto quality tiering with thermal-aware step-down),
+`GlassPerformanceMonitor`, `GlassQuality`, and a VM service extension
+(`package:flutter_liquid_glass_widgets/glass_devtools_bridge.dart`) exposing
+live adaptive-quality diagnostics to external tooling.
+
+**Effects & rendering primitives**
+`ProgressiveBlur`, `LiquidGlassLayer`, `LiquidGlassSettings`,
+`LiquidGlassBlendGroup`, `GlassGlow`, `LiquidShape` and its shape variants —
+for teams building fully custom glass widgets on the same renderer.
+
+## Command Palette
+
+`GlassCommandPalette` / `GlassCommandPaletteScope` — a Spotlight/Raycast-style
+⌘K / Ctrl+K command palette with fuzzy search, keyboard navigation, and
+recent-first ordering.
+
+## macOS-style Dock
+
+`GlassDock` — icons scale with a Gaussian magnification falloff as the
+pointer approaches, matching real dock physics; static (no magnification) on
+touch-only platforms automatically.
+
+---
+
+## Pre-fork development history (as `liquid_glass_widgets`)
+
 # 0.26.1
 
 ## 🐛 Bug Fixes
