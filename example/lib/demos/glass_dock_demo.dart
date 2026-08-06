@@ -10,6 +10,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import 'package:liquid_glass_widgets_example/theme/app_theme.dart';
+
 class GlassDockDemo extends StatefulWidget {
   const GlassDockDemo({super.key});
 
@@ -45,15 +47,10 @@ class _GlassDockDemoState extends State<GlassDockDemo> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'GlassDock',
-                        style: TextStyle(
-                          color: CupertinoColors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
+                      Text(
+                    'GlassDock',
+                    style: AppType.display(isDark: true, size: 26, color: CupertinoColors.white),
+                  ),
                       const SizedBox(height: 6),
                       Text(
                         'Move the cursor across the dock. Last tapped: $_lastTapped',

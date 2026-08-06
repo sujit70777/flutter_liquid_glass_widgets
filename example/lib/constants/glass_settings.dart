@@ -3,7 +3,11 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
-/// A theme-aware background for showcase pages.
+import '../theme/app_theme.dart';
+
+/// A theme-aware "Aurora Glass" background for showcase pages — the app's
+/// own identity, distinct from the Apple-app recreations elsewhere in this
+/// example, which intentionally keep their real-world look.
 class ShowcaseBackground extends StatelessWidget {
   const ShowcaseBackground({super.key});
 
@@ -22,22 +26,22 @@ class _DarkShowcaseBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF020715), // ChemAlert deep navy
+      color: AuroraColors.ink,
       child: Stack(
         children: [
-          // Purple glow — upper right (9B59FF / A246F7)
+          // Violet glow — upper right
           Positioned(
             top: -50,
             right: -100,
             child: Container(
-              width: 500,
-              height: 500,
+              width: 520,
+              height: 520,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFA246F7).withValues(alpha: 0.32),
-                    const Color(0xFF9B59FF).withValues(alpha: 0.1),
+                    AuroraColors.violet.withValues(alpha: 0.30),
+                    AuroraColors.violet.withValues(alpha: 0.08),
                     const Color(0x00000000),
                   ],
                   stops: const [0.0, 0.5, 1.0],
@@ -45,7 +49,7 @@ class _DarkShowcaseBackground extends StatelessWidget {
               ),
             ),
           ),
-          // Hot pink glow — center left (E040FB / EB66FF)
+          // Magenta glow — center left
           Positioned(
             top: 280,
             left: -100,
@@ -56,8 +60,8 @@ class _DarkShowcaseBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFEB66FF).withValues(alpha: 0.16),
-                    const Color(0xFFE040FB).withValues(alpha: 0.05),
+                    AuroraColors.magenta.withValues(alpha: 0.16),
+                    AuroraColors.magenta.withValues(alpha: 0.04),
                     const Color(0x00000000),
                   ],
                   stops: const [0.0, 0.5, 1.0],
@@ -65,7 +69,7 @@ class _DarkShowcaseBackground extends StatelessWidget {
               ),
             ),
           ),
-          // Blue glow — bottom right (2077FF / 4FC3F7)
+          // Cyan glow — bottom right
           Positioned(
             bottom: -60,
             right: -40,
@@ -76,8 +80,8 @@ class _DarkShowcaseBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF2077FF).withValues(alpha: 0.18),
-                    const Color(0xFF4FC3F7).withValues(alpha: 0.06),
+                    AuroraColors.cyan.withValues(alpha: 0.18),
+                    AuroraColors.skyBlue.withValues(alpha: 0.06),
                     const Color(0x00000000),
                   ],
                   stops: const [0.0, 0.45, 1.0],
@@ -85,7 +89,7 @@ class _DarkShowcaseBackground extends StatelessWidget {
               ),
             ),
           ),
-          // Subtle purple accent — mid-left
+          // Subtle indigo accent — mid-left
           Positioned(
             top: 120,
             left: 30,
@@ -96,14 +100,14 @@ class _DarkShowcaseBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF9B59FF).withValues(alpha: 0.10),
+                    AuroraColors.indigo.withValues(alpha: 0.10),
                     const Color(0x00000000),
                   ],
                 ),
               ),
             ),
           ),
-          // Purple wash — center screen (behind catalog cards)
+          // Violet wash — center screen (behind catalog cards)
           Positioned(
             top: 500,
             left: 0,
@@ -116,8 +120,8 @@ class _DarkShowcaseBackground extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF9B59FF).withValues(alpha: 0.14),
-                      const Color(0xFF7B3FA8).withValues(alpha: 0.05),
+                      AuroraColors.violet.withValues(alpha: 0.13),
+                      AuroraColors.indigo.withValues(alpha: 0.04),
                       const Color(0x00000000),
                     ],
                     stops: const [0.0, 0.5, 1.0],
@@ -138,20 +142,19 @@ class _LightShowcaseBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFFF5F0FA), // Very light lavender
-            Color(0xFFF0F4F8), // Soft blue-grey
-            Color(0xFFEEEEF2), // Light grey
+            Color(0xFFF6F2FB), // Very light lavender
+            Color(0xFFF1F5FA), // Soft blue-grey
+            Color(0xFFEFEFF4), // Light grey
           ],
         ),
       ),
       child: Stack(
         children: [
-          // Muted purple glow — upper right
           Positioned(
             top: -50,
             right: -100,
@@ -162,8 +165,8 @@ class _LightShowcaseBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFA246F7).withValues(alpha: 0.15),
-                    const Color(0xFF9B59FF).withValues(alpha: 0.06),
+                    AuroraColors.violet.withValues(alpha: 0.14),
+                    AuroraColors.violet.withValues(alpha: 0.05),
                     const Color(0x00000000),
                   ],
                   stops: const [0.0, 0.5, 1.0],
@@ -171,7 +174,6 @@ class _LightShowcaseBackground extends StatelessWidget {
               ),
             ),
           ),
-          // Soft pink glow — center left
           Positioned(
             top: 280,
             left: -100,
@@ -182,8 +184,8 @@ class _LightShowcaseBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFEB66FF).withValues(alpha: 0.12),
-                    const Color(0xFFE040FB).withValues(alpha: 0.05),
+                    AuroraColors.magenta.withValues(alpha: 0.11),
+                    AuroraColors.magenta.withValues(alpha: 0.04),
                     const Color(0x00000000),
                   ],
                   stops: const [0.0, 0.5, 1.0],
@@ -191,7 +193,6 @@ class _LightShowcaseBackground extends StatelessWidget {
               ),
             ),
           ),
-          // Blue accent — bottom right
           Positioned(
             bottom: -60,
             right: -40,
@@ -202,8 +203,8 @@ class _LightShowcaseBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF2077FF).withValues(alpha: 0.12),
-                    const Color(0xFF4FC3F7).withValues(alpha: 0.05),
+                    AuroraColors.cyan.withValues(alpha: 0.12),
+                    AuroraColors.skyBlue.withValues(alpha: 0.05),
                     const Color(0x00000000),
                   ],
                   stops: const [0.0, 0.45, 1.0],

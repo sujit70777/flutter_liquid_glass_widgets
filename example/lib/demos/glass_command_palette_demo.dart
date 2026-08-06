@@ -12,6 +12,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import 'package:liquid_glass_widgets_example/theme/app_theme.dart';
+
 class GlassCommandPaletteDemo extends StatefulWidget {
   const GlassCommandPaletteDemo({super.key});
 
@@ -89,15 +91,10 @@ class _GlassCommandPaletteDemoState extends State<GlassCommandPaletteDemo> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
-                    const Text(
-                      'GlassCommandPalette',
-                      style: TextStyle(
-                        color: CupertinoColors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
+                    Text(
+                    'GlassCommandPalette',
+                    style: AppType.display(isDark: true, size: 26, color: CupertinoColors.white),
+                  ),
                     const SizedBox(height: 6),
                     Text(
                       'Press ⌘K (macOS/web) or Ctrl+K to open it anywhere on '
