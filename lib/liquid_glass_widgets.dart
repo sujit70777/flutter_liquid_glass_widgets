@@ -28,6 +28,7 @@ export 'constants/glass_shadow.dart';
 export 'theme/glass_theme.dart';
 export 'theme/glass_interaction_settings.dart';
 export 'theme/glass_theme_data.dart';
+export 'theme/glass_theme_presets.dart'; // GlassThemePresets
 export 'theme/glass_theme_settings.dart';
 
 // Types
@@ -68,16 +69,25 @@ export 'utils/glass_performance_monitor.dart'
     show GlassPerformanceMonitor; // PremiumGlassTracker is internal
 
 // Widgets - Containers
+export 'widgets/containers/glass_avatar.dart';
 export 'widgets/containers/glass_card.dart';
+export 'widgets/containers/glass_chart.dart'; // GlassChart + GlassChartLegendEntry
 export 'widgets/containers/glass_container.dart';
 export 'widgets/containers/glass_divider.dart';
 export 'widgets/containers/glass_grouped_section.dart';
 export 'widgets/containers/glass_list_tile.dart';
 export 'widgets/containers/glass_stepper.dart';
+export 'widgets/containers/glass_timeline.dart'; // GlassTimeline + GlassTimelineItem
 // Widgets - Input
+export 'widgets/input/glass_calendar_picker.dart'
+    show
+        GlassCalendarPicker,
+        GlassCalendarSelectionMode,
+        GlassDateRange; // internal _DateUtils helper stays private
 export 'widgets/input/glass_form_field.dart';
 export 'widgets/input/glass_password_field.dart';
 export 'widgets/input/glass_picker.dart';
+export 'widgets/input/glass_rating_bar.dart';
 export 'widgets/input/glass_search_bar.dart';
 export 'widgets/input/glass_text_area.dart';
 export 'widgets/input/glass_text_field.dart';
@@ -97,6 +107,7 @@ export 'widgets/interactive/glass_button_group.dart';
 export 'types/glass_button_style.dart';
 // Widgets - Feedback
 export 'widgets/feedback/glass_progress_indicator.dart';
+export 'widgets/feedback/glass_skeleton_loader.dart';
 // Widgets - Overlays
 export 'widgets/overlays/glass_action_sheet.dart';
 export 'widgets/overlays/glass_command_palette.dart'
@@ -123,6 +134,7 @@ export 'widgets/overlays/glass_popover.dart';
 export 'widgets/effects/progressive_blur.dart';
 // Widgets - Surfaces
 export 'widgets/surfaces/glass_app_bar.dart';
+export 'widgets/surfaces/glass_dock.dart'; // GlassDock + GlassDockItem
 export 'widgets/surfaces/glass_large_title.dart';
 export 'widgets/shared/glass_isolation_scope.dart';
 export 'widgets/surfaces/glass_scaffold.dart';
