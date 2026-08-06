@@ -1,6 +1,6 @@
 name: flutter_liquid_glass_widgets
 description: "iOS 26-style liquid glass widgets for Flutter. Built on a custom fragment shader for real blur, liquid interactions, specular highlights, and chromatic aberration."
-version: 0.29.2
+version: 0.0.1
 
 
 homepage: https://github.com/sujit70777/flutter_liquid_glass_widgets
@@ -38,13 +38,8 @@ dependencies:
   # liquid_glass_widgets.dart barrel) — apps that don't import that file
   # never touch GlassContrastRule, but this still resolves for every
   # consumer at `pub get` time since Dart has no true optional/peer
-  # dependencies. flutter_a11y_lens isn't published to pub.dev yet (v0.0.1),
-  # hence the git dependency; NOTE this blocks `flutter pub publish` for
-  # this package until flutter_a11y_lens is itself on pub.dev — switch this
-  # to a version constraint at that point.
-  flutter_a11y_lens:
-    git:
-      url: https://github.com/sujit70777/flutter_a11y_lens.git
+  # dependencies.
+  flutter_a11y_lens: ^0.0.1
 dev_dependencies:
   alchemist: ^0.14.0
   flutter_test:
