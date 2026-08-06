@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:liquid_glass_widgets_example/constants/glass_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'package:liquid_glass_widgets_example/demos/android_showcase_demo.dart';
 import 'package:liquid_glass_widgets_example/apple_messages/apple_messages_demo.dart';
 import 'package:liquid_glass_widgets_example/apple_music/apple_music_demo.dart';
 import 'package:liquid_glass_widgets_example/apple_news/apple_news_demo.dart';
@@ -126,27 +129,44 @@ class ShowcaseHomePage extends StatefulWidget {
 
 class _ShowcaseHomePageState extends State<ShowcaseHomePage> {
   int _selectedTab = 0;
+  Widget? _activeDestination;
+
+  void _openDestination(Widget destination) {
+    setState(() => _activeDestination = destination);
+  }
+
+  void _closeDestination() {
+    setState(() => _activeDestination = null);
+  }
 
   static const _tabs = [
     GlassTab(
       label: 'Explore',
-      icon: Icon(CupertinoIcons.compass),
-      activeIcon: Icon(CupertinoIcons.compass_fill),
+      icon: Icon(CupertinoIcons.wand_stars),
+      activeIcon: Icon(CupertinoIcons.wand_stars),
     ),
     GlassTab(
       label: 'Widgets',
-      icon: Icon(CupertinoIcons.square_grid_2x2),
-      activeIcon: Icon(CupertinoIcons.square_grid_2x2_fill),
+      icon: Icon(CupertinoIcons.hexagon),
+      activeIcon: Icon(CupertinoIcons.hexagon_fill),
     ),
     GlassTab(
-      label: 'Demos',
+      label: 'Android',
+      icon: Icon(Icons.android_outlined, size: 26),
+      activeIcon: Icon(Icons.android, size: 26),
+    ),
+    GlassTab(
+      // Kept as the Apple logo, unlike the other three — this tab is
+      // specifically the Apple-app recreation gallery, so it's the one
+      // icon that's more accurate unchanged than swapped.
+      label: 'IOS',
       icon: Icon(Icons.apple_outlined, size: 30),
       activeIcon: Icon(Icons.apple, size: 30),
     ),
     GlassTab(
       label: 'Examples',
-      icon: Icon(CupertinoIcons.cube),
-      activeIcon: Icon(CupertinoIcons.cube_fill),
+      icon: Icon(CupertinoIcons.square_stack_3d_up),
+      activeIcon: Icon(CupertinoIcons.square_stack_3d_up_fill),
     ),
   ];
 
@@ -154,48 +174,104 @@ class _ShowcaseHomePageState extends State<ShowcaseHomePage> {
   Widget build(BuildContext context) {
     final scope = _BrightnessScope.of(context);
     final isDark = scope.brightness == Brightness.dark;
+    final destination = _activeDestination;
 
-    return GlassScaffold(
-      background: const ShowcaseBackground(),
-      statusBarStyle:
-          isDark ? GlassStatusBarStyle.light : GlassStatusBarStyle.dark,
-      settings: RecommendedGlassSettings.standard,
-      topEdgeFade: true,
-      bottomBar: GlassTabBar.bottom(
-        selectedIndex: _selectedTab,
-        onTabSelected: (i) => setState(() => _selectedTab = i),
-        interactionBehavior: GlassInteractionBehavior.full,
-        selectedIconColor: const Color(0xFFA855F7),
-        iconSize: 28,
-        labelFontSize: 10,
-        iconLabelSpacing: 0,
-        settings: const LiquidGlassSettings(
-          glassColor: Color.fromRGBO(255, 255, 255, 0.08),
-          thickness: 30,
-          blur: 3,
-          chromaticAberration: .01,
-          lightAngle: GlassDefaults.lightAngle,
-          lightIntensity: .5,
-          ambientStrength: 0,
-          refractiveIndex: 1.2,
-          saturation: 1.2,
-          specularSharpness: GlassSpecularSharpness.medium,
+    return DestinationScope(
+      open: _openDestination,
+      close: _closeDestination,
+      hasActiveDestination: destination != null,
+      child: GlassScaffold(
+        background: const ShowcaseBackground(),
+        statusBarStyle:
+            isDark ? GlassStatusBarStyle.light : GlassStatusBarStyle.dark,
+        settings: RecommendedGlassSettings.standard,
+        topEdgeFade: true,
+        bottomBar: GlassTabBar.bottom(
+          selectedIndex: _selectedTab,
+          onTabSelected: (i) => setState(() {
+            _selectedTab = i;
+            // Switching tabs always returns to that tab's grid — the bottom
+            // bar is the only navigation control, so it must always be able
+            // to get you back to a known place.
+            _activeDestination = null;
+          }),
+          interactionBehavior: GlassInteractionBehavior.full,
+          selectedIconColor: AuroraColors.violet,
+          iconSize: 28,
+          labelFontSize: 10,
+          iconLabelSpacing: 0,
+          // Wider bar (less inset from the screen edges) with softened
+          // rounded-rectangle corners instead of a full pill/capsule shape,
+          // on both the bar itself and the per-tab selection indicator.
+          horizontalPadding: 10,
+          barBorderRadius: 26,
+          indicatorBorderRadius: 18,
+          settings: const LiquidGlassSettings(
+            glassColor: Color.fromRGBO(255, 255, 255, 0.08),
+            thickness: 30,
+            blur: 3,
+            chromaticAberration: .01,
+            lightAngle: GlassDefaults.lightAngle,
+            lightIntensity: .5,
+            ambientStrength: 0,
+            refractiveIndex: 1.2,
+            saturation: 1.2,
+            specularSharpness: GlassSpecularSharpness.medium,
+          ),
+          tabs: _tabs,
         ),
-        extraButton: GlassTabBarExtraButton(
-          icon: Icon(isDark ? CupertinoIcons.sun_max : CupertinoIcons.moon),
-          label: isDark ? 'Light mode' : 'Dark mode',
-          onTap: scope.toggleBrightness,
+        body: Stack(
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: destination != null
+                  ? KeyedSubtree(
+                      key: const ValueKey('destination'),
+                      child: destination,
+                    )
+                  : switch (_selectedTab) {
+                      0 => const _ExploreTab(key: ValueKey('explore')),
+                      1 => const _WidgetsTab(key: ValueKey('widgets')),
+                      2 => const AndroidShowcaseTab(key: ValueKey('android')),
+                      3 => const _DemosTab(key: ValueKey('demos')),
+                      _ => const _ExamplesTab(key: ValueKey('examples')),
+                    },
+            ),
+            // Minimal floating back control — not a nav bar, just a small
+            // glass square — the only way back from a destination besides
+            // tapping a different tab.
+            if (destination != null)
+              Positioned(
+                top: 8,
+                left: 12,
+                child: SafeArea(
+                  bottom: false,
+                  child: GlassIconButton(
+                    icon: const Icon(CupertinoIcons.xmark),
+                    shape: GlassIconButtonShape.roundedSquare,
+                    size: 38,
+                    onPressed: _closeDestination,
+                  ),
+                ),
+              ),
+            // Light/dark toggle — floating top-right, always visible.
+            Positioned(
+              top: 8,
+              right: 12,
+              child: SafeArea(
+                bottom: false,
+                child: GlassIconButton(
+                  icon: Icon(
+                    isDark ? CupertinoIcons.sun_max : CupertinoIcons.moon,
+                  ),
+                  shape: GlassIconButtonShape.roundedSquare,
+                  size: 38,
+                  onPressed: scope.toggleBrightness,
+                ),
+              ),
+            ),
+          ],
         ),
-        tabs: _tabs,
-      ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        child: switch (_selectedTab) {
-          0 => const _ExploreTab(key: ValueKey('explore')),
-          1 => const _WidgetsTab(key: ValueKey('widgets')),
-          2 => const _DemosTab(key: ValueKey('demos')),
-          _ => const _ExamplesTab(key: ValueKey('examples')),
-        },
       ),
     );
   }
@@ -207,6 +283,58 @@ class _ShowcaseHomePageState extends State<ShowcaseHomePage> {
 
 class _ExploreTab extends StatelessWidget {
   const _ExploreTab({super.key});
+
+  /// Every card on the Explore tab, in one shuffled deck. Seeded so the
+  /// order is fixed for the app's lifetime rather than re-shuffling (and
+  /// visibly jumping around) on every rebuild.
+  static final List<Widget> _exploreCards = () {
+    final cards = <Widget>[
+      // _SmallDemoCard(
+      //   title: 'Messages',
+      //   icon: CupertinoIcons.chat_bubble_2_fill,
+      //   color: const Color(0xFF34C759),
+      //   destination: const MessagesScreen(),
+      // ),
+      _SmallDemoCard(
+        title: 'Surfaces',
+        icon: CupertinoIcons.rectangle_3_offgrid_fill,
+        color: AuroraColors.violet,
+        destination: const SurfacesPage(),
+      ),
+      _SmallDemoCard(
+        title: 'Interactive',
+        icon: CupertinoIcons.hand_point_right_fill,
+        color: AuroraColors.magenta,
+        destination: const InteractivePage(),
+      ),
+      _SmallDemoCard(
+        title: 'Feedback',
+        icon: CupertinoIcons.hourglass,
+        color: AuroraColors.amber,
+        destination: const FeedbackPage(),
+      ),
+      _SmallDemoCard(
+        title: 'Input',
+        icon: CupertinoIcons.keyboard,
+        color: AuroraColors.cyan,
+        destination: const InputPage(),
+      ),
+      _SmallDemoCard(
+        title: 'Overlays',
+        icon: CupertinoIcons.square_stack_fill,
+        color: AuroraColors.indigo,
+        destination: const OverlaysPage(),
+      ),
+      _SmallDemoCard(
+        title: 'Containers',
+        icon: CupertinoIcons.square_stack_3d_up_fill,
+        color: AuroraColors.emerald,
+        destination: const ContainersPage(),
+      ),
+    ];
+    cards.shuffle(math.Random(7));
+    return cards;
+  }();
 
   @override
   Widget build(BuildContext context) {
@@ -255,194 +383,33 @@ class _ExploreTab extends StatelessWidget {
                   }),
                   SizedBox(height: 32),
 
-                  // ── Featured demo — large card ────────────────────
-                  GestureDetector(
-                    onTap: () =>
-                        _openDemo(context, const AppleMusicHomeScreen()),
-                    child: Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF8B0000),
-                            Color(0xFFFA2D48),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.apple_outlined,
-                                  color: CupertinoColors.white, size: 30),
-                              SizedBox(width: 6),
-                              Text(
-                                'Music',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: CupertinoColors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Text(
-                            'Apple Music recreation\n with Liquid Glass Widgets',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: CupertinoColors.white,
-                              height: 1.3,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Searchable bottom bar · Play pill · Tab navigation',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color:
-                                  CupertinoColors.white.withValues(alpha: 0.7),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  SizedBox(height: 16),
-
-                  // ── Two smaller demo cards ────────────────────────
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SmallDemoCard(
-                          title: 'Messages',
-                          icon: CupertinoIcons.chat_bubble_2_fill,
-                          color: const Color(0xFF34C759),
-                          destination: const MessagesScreen(),
-                        ),
-                      ),
-                      SizedBox(width: 14),
-                      Expanded(
-                        child: _SmallDemoCard(
-                          title: 'Podcasts',
-                          icon: CupertinoIcons.mic_fill,
-                          color: const Color(0xFFA855F7),
-                          destination: const ApplePodcastsHomeScreen(),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 32),
-
-                  // ── Staggered widget preview ──────────────────────
                   Text(
-                    'Widget Catalog',
+                    'Jump In',
                     style: AppType.heading(
-                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      isDark: CupertinoTheme.of(context).brightness ==
+                          Brightness.dark,
                       size: 21,
                     ),
                   ),
                   SizedBox(height: 16),
 
-                  // ── Masonry: tall card + two stacked ──────────
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                  // Every card on this page in one unshuffled deck — pairs
+                  // rendered two-up, in a fixed shuffled order (seeded, so
+                  // it doesn't reshuffle on every rebuild).
+                  for (var i = 0; i < _exploreCards.length; i += 2) ...[
+                    if (i > 0) SizedBox(height: 14),
+                    Row(
                       children: [
-                        // Left: tall card spanning both right cards
-                        Expanded(
-                          flex: 1,
-                          child: _StaggeredCatalogCard(
-                            icon: CupertinoIcons.rectangle_3_offgrid_fill,
-                            title: 'Surfaces',
-                            subtitle: 'AppBar · BottomBar · SearchBar · TabBar',
-                            color: AuroraColors.violet,
-                            destination: const SurfacesPage(),
-                          ),
-                        ),
+                        Expanded(child: _exploreCards[i]),
                         SizedBox(width: 14),
-                        // Right: two stacked cards
                         Expanded(
-                          flex: 1,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _StaggeredCatalogCard(
-                                icon: CupertinoIcons.hand_point_right_fill,
-                                title: 'Interactive',
-                                subtitle: 'Button · Switch · Slider',
-                                color: AuroraColors.magenta,
-                                height: 120,
-                                destination: const InteractivePage(),
-                              ),
-                              SizedBox(height: 14),
-                              _StaggeredCatalogCard(
-                                icon: CupertinoIcons.hourglass,
-                                title: 'Feedback',
-                                subtitle: 'Progress · Toast',
-                                color: AuroraColors.amber,
-                                height: 120,
-                                destination: const FeedbackPage(),
-                              ),
-                            ],
-                          ),
+                          child: i + 1 < _exploreCards.length
+                              ? _exploreCards[i + 1]
+                              : const SizedBox.shrink(),
                         ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: 14),
-
-                  // ── Row of two ──────────────────────────────────
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StaggeredCatalogCard(
-                          icon: CupertinoIcons.keyboard,
-                          title: 'Input',
-                          subtitle: 'TextField · SearchBar',
-                          color: AuroraColors.cyan,
-                          height: 120,
-                          destination: const InputPage(),
-                        ),
-                      ),
-                      SizedBox(width: 14),
-                      Expanded(
-                        child: _StaggeredCatalogCard(
-                          icon: CupertinoIcons.square_stack_fill,
-                          title: 'Overlays',
-                          subtitle: 'Sheet · Dialog · Menu · Popover',
-                          color: AuroraColors.indigo,
-                          height: 120,
-                          destination: const OverlaysPage(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 14),
-
-                  // ── Full-width card ─────────────────────────────
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StaggeredCatalogCard(
-                          icon: CupertinoIcons.square_stack_3d_up_fill,
-                          title: 'Containers',
-                          subtitle: 'Card · Panel · Container',
-                          color: AuroraColors.emerald,
-                          height: 100,
-                          destination: const ContainersPage(),
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
 
                   SizedBox(height: 120),
                 ],
@@ -477,7 +444,8 @@ class _WidgetsTab extends StatelessWidget {
                   Text(
                     'Widgets',
                     style: AppType.display(
-                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      isDark: CupertinoTheme.of(context).brightness ==
+                          Brightness.dark,
                       size: 32,
                     ),
                   ),
@@ -485,7 +453,8 @@ class _WidgetsTab extends StatelessWidget {
                   Text(
                     'Browse the full widget catalog.',
                     style: AppType.body(
-                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      isDark: CupertinoTheme.of(context).brightness ==
+                          Brightness.dark,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -594,7 +563,8 @@ class _DemosTab extends StatelessWidget {
                   Text(
                     'Demos',
                     style: AppType.display(
-                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      isDark: CupertinoTheme.of(context).brightness ==
+                          Brightness.dark,
                       size: 32,
                     ),
                   ),
@@ -602,7 +572,8 @@ class _DemosTab extends StatelessWidget {
                   Text(
                     'Polished Apple app reproductions.',
                     style: AppType.body(
-                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      isDark: CupertinoTheme.of(context).brightness ==
+                          Brightness.dark,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -701,7 +672,8 @@ class _ExamplesTab extends StatelessWidget {
                   Text(
                     'Examples',
                     style: AppType.display(
-                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      isDark: CupertinoTheme.of(context).brightness ==
+                          Brightness.dark,
                       size: 32,
                     ),
                   ),
@@ -709,7 +681,8 @@ class _ExamplesTab extends StatelessWidget {
                   Text(
                     'Widget modes & configuration reference.',
                     style: AppType.body(
-                      isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+                      isDark: CupertinoTheme.of(context).brightness ==
+                          Brightness.dark,
                     ),
                   ),
                   SizedBox(height: 24),
@@ -923,79 +896,42 @@ class _ExamplesTab extends StatelessWidget {
 // Shared Widgets
 // =============================================================================
 
+/// Opens [destination] in place, inside the persistent bottom-tab-bar shell
+/// — never a pushed full-screen route with its own back-arrow bar. Every
+/// catalog page, Apple-app recreation, and widget demo goes through this one
+/// function, so the whole app's navigation model lives in one place: see
+/// [DestinationScope].
 void _openDemo(BuildContext context, Widget destination) {
-  final nav = Navigator.of(context);
-  if (nav.userGestureInProgress) return;
-  nav.push(CupertinoPageRoute<void>(builder: (_) => destination));
+  DestinationScope.of(context).open(destination);
 }
 
-/// Staggered glass catalog card — variable height, real glass shader
-/// background with a colored elevation shadow underneath so it visibly
-/// lifts off the page (in both light and dark mode) rather than reading flat.
-class _StaggeredCatalogCard extends StatelessWidget {
-  const _StaggeredCatalogCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    this.height,
-    required this.destination,
+/// Provides in-place "destination" navigation to the whole app: opening a
+/// catalog page/demo swaps it into the body of the persistent
+/// [ShowcaseHomePage] shell rather than pushing a new route, so the bottom
+/// tab bar (and the floating back control) never disappear.
+class DestinationScope extends InheritedWidget {
+  const DestinationScope({
+    super.key,
+    required this.open,
+    required this.close,
+    required this.hasActiveDestination,
+    required super.child,
   });
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final double? height;
-  final Widget destination;
+  final ValueChanged<Widget> open;
+  final VoidCallback close;
+  final bool hasActiveDestination;
+
+  static DestinationScope of(BuildContext context) {
+    final scope =
+        context.dependOnInheritedWidgetOfExactType<DestinationScope>();
+    assert(scope != null, 'No DestinationScope found in context');
+    return scope!;
+  }
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: isDark ? 0.28 : 0.32),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-          BoxShadow(
-            color: CupertinoColors.black
-                .withValues(alpha: isDark ? 0.5 : 0.10),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: GlassButton.custom(
-        onTap: () => _openDemo(context, destination),
-        width: double.infinity,
-        height: height ?? 254, // tall card default
-        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
-        interactionScale: 0.97,
-        stretch: 0.15,
-        alignment: Alignment.topLeft,
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AuroraIconChip(icon: icon, color: color, size: 30),
-              const Spacer(),
-              Text(title, style: AppType.heading(isDark: isDark, size: 16)),
-              SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: AppType.body(isDark: isDark, size: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  bool updateShouldNotify(DestinationScope oldWidget) =>
+      hasActiveDestination != oldWidget.hasActiveDestination;
 }
 
 /// Small demo card — glass panel with an accent icon chip, "Aurora Glass"
@@ -1020,7 +956,8 @@ class _SmallDemoCard extends StatelessWidget {
       onTap: () => _openDemo(context, destination),
       child: Container(
         height: 104,
-        decoration: auroraPanelDecoration(isDark: isDark, radius: 18, tint: color),
+        decoration:
+            auroraPanelDecoration(isDark: isDark, radius: 18, tint: color),
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1063,7 +1000,8 @@ class _LargeDemoCard extends StatelessWidget {
       onTap: () => _openDemo(context, destination),
       child: Container(
         height: 124,
-        decoration: auroraPanelDecoration(isDark: isDark, radius: 22, tint: accent),
+        decoration:
+            auroraPanelDecoration(isDark: isDark, radius: 22, tint: accent),
         padding: const EdgeInsets.all(20),
         child: Row(
           children: [
