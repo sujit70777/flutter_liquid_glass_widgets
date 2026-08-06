@@ -9,8 +9,12 @@ import 'package:liquid_glass_widgets_example/apple_news/apple_news_demo.dart';
 import 'package:liquid_glass_widgets_example/apple_podcasts/apple_podcasts_demo.dart';
 import 'package:liquid_glass_widgets_example/apple_lockscreen/keypad_lock_screen_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/nav_bar_patterns_demo.dart';
+import 'package:liquid_glass_widgets_example/demos/glass_calendar_picker_demo.dart';
+import 'package:liquid_glass_widgets_example/demos/glass_chart_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/glass_command_palette_demo.dart';
+import 'package:liquid_glass_widgets_example/demos/glass_dock_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/glass_menu_demo.dart';
+import 'package:liquid_glass_widgets_example/demos/glass_new_components_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/glass_modal_sheet_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/video_player_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/text_field_demo.dart';
@@ -848,6 +852,52 @@ class _ExamplesTab extends StatelessWidget {
                       Color(0xFF0A84FF),
                     ],
                     destination: const IndicatorParityDemoPage(),
+                  ),
+                  SizedBox(height: 14),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _SmallDemoCard(
+                          title: 'Dock',
+                          icon: CupertinoIcons.rectangle_grid_1x2,
+                          color: const Color(0xFF32D74B),
+                          destination: const GlassDockDemo(),
+                        ),
+                      ),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: _SmallDemoCard(
+                          title: 'Calendar',
+                          icon: CupertinoIcons.calendar,
+                          color: const Color(0xFFFF453A),
+                          destination: const GlassCalendarPickerDemo(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 14),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _SmallDemoCard(
+                          title: 'Chart',
+                          icon: CupertinoIcons.chart_bar_alt_fill,
+                          color: const Color(0xFF0A84FF),
+                          destination: const GlassChartDemo(),
+                        ),
+                      ),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: _SmallDemoCard(
+                          title: 'Long-tail Components',
+                          icon: CupertinoIcons.square_grid_2x2,
+                          color: const Color(0xFFBF5AF2),
+                          destination: const GlassNewComponentsDemo(),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 14),
 
