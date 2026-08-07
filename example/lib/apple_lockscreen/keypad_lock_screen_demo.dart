@@ -134,7 +134,7 @@ class _KeypadLockScreenDemoState extends State<KeypadLockScreenDemo>
       background: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/bulldog.jpeg'),
+            image: AssetImage('assets/wallpaper_dark.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
               CupertinoColors.black

@@ -64,8 +64,19 @@ for term in "${SHOWS[@]}"; do
   }
 
   # Extract id / title / author / artwork URL from the first result.
-  read -r itunes_id collection_name artist_name artwork_url < <(
-    python3 - "$result_json" <<'PY'
+  #
+  # NOTE: this intentionally uses `python3 -c` rather than a heredoc — bash
+  # 3.2 (still macOS's default /bin/bash) has a parser bug where a heredoc
+  # nested inside a `<(...)` process substitution can fail with
+  # "bad substitution: no closing `)' in <(" even though the syntax is
+  # valid. Passing the script via -c sidesteps it.
+  #
+  # IFS is scoped to tab-only for this read: show titles/authors contain
+  # spaces, and the default IFS (space+tab) would otherwise split each word
+  # of "This American Life" into its own field instead of keeping the
+  # tab-delimited columns intact.
+  IFS=$'\t' read -r itunes_id collection_name artist_name artwork_url < <(
+    python3 -c '
 import json, sys
 
 data = json.loads(sys.argv[1])
@@ -81,12 +92,12 @@ artist = r.get("artistName") or ""
 artwork = r.get("artworkUrl600") or ""
 if not artwork:
     artwork = r.get("artworkUrl100", "")
-    # Upsize the default 100x100 thumbnail to a larger crop if that's all we got.
+    # Upsize the default 100x100 thumbnail to a larger crop if that is all we got.
     artwork = artwork.replace("100x100bb", "600x600bb")
 
 # Tab-separated, single line — caller reads it back with `read`.
 print(track_id, name.replace("\t", " "), artist.replace("\t", " "), artwork, sep="\t")
-PY
+' "$result_json"
   )
 
   if [[ -z "$itunes_id" || -z "$artwork_url" ]]; then

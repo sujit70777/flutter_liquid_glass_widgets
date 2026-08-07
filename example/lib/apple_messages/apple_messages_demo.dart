@@ -125,94 +125,93 @@ class _Conversation {
 
 const _kConversations = [
   _Conversation(
-    name: 'Mum',
-    preview: 'Don\'t forget dinner on Sunday! 🍗',
+    name: 'Mom',
+    preview: 'Can you pick up milk on your way home? 🥛',
     time: '5:41 pm',
     initial: 'M',
     isUnread: true,
   ),
   _Conversation(
-    name: 'Work Group 💼',
-    preview: 'Jake: Can everyone join the 3pm standup?',
+    name: 'Design Team 🎨',
+    preview: 'Maya: Can everyone review the mockups by EOD?',
     time: '4:56 pm',
-    initial: 'W',
+    initial: 'D',
     isUnread: true,
   ),
   _Conversation(
-    name: 'Alex',
-    preview: 'You liked "Sounds good, see you there"',
+    name: 'Noah',
+    preview: 'You liked "On my way, be there in 10!"',
     time: '11:06 am',
+    initial: 'N',
+  ),
+  _Conversation(
+    name: 'Aisha',
+    preview: 'Have a safe flight! Text me when you land ✈️',
+    time: 'Tuesday',
     initial: 'A',
   ),
   _Conversation(
-    name: 'Priya',
-    preview: 'Cheers! Safe travels 🙌',
-    time: 'Tuesday',
-    initial: 'P',
-  ),
-  _Conversation(
-    name: 'Sam',
+    name: 'Liam',
     preview: 'Attachment: 1 Photo',
     time: 'Tuesday',
-    initial: 'S',
+    initial: 'L',
     hasAttachment: true,
   ),
   _Conversation(
     name: '+61 428 048 980',
     preview:
-        'Hi! Just a reminder your appointment is Fri 9 May at 2:30 PM. Reply STOP to opt out.',
+        'Hi! Just a reminder your dental appointment is Fri 9 May at 2:30 PM. Reply STOP to opt out.',
     time: 'Monday',
   ),
   _Conversation(
     name: '+61 482 092 063',
-    preview:
-        'Your parcel has been delivered to the front door. Track at auspost.com.au',
+    preview: 'Your package is out for delivery today. Track at auspost.com.au',
     time: 'Monday',
   ),
   _Conversation(
-    name: 'Jordan',
-    preview: 'haha yeah that was wild 😂',
+    name: 'Maya',
+    preview: 'lol yes that meeting went sideways 😂',
     time: 'Monday',
-    initial: 'J',
+    initial: 'M',
   ),
   _Conversation(
-    name: 'Taylor',
-    preview: 'Ok sounds good!',
+    name: 'Ethan',
+    preview: 'Sounds good, see you then!',
     time: 'Sunday',
-    initial: 'T',
+    initial: 'E',
   ),
   _Conversation(
     name: '+61 409 593 783',
     preview:
-        'Hi! FREE flu vaccines are now available for ALL ages at participating pharmacies near you.',
+        'Hi! Get 20% off your next order today only. Shop now at bigretailer.com.au',
     time: 'Sunday',
   ),
   _Conversation(
-    name: 'Riley',
-    preview: 'The reservation is at 7:30, don\'t be late lol',
+    name: 'Zoe',
+    preview: 'Table\'s booked for 7:30, don\'t be late! 😄',
     time: 'Saturday',
-    initial: 'R',
+    initial: 'Z',
     isUnread: true,
   ),
   _Conversation(
-    name: 'Westpac',
-    preview: 'Your statement is ready. Log in to view.',
+    name: 'Chase',
+    preview: 'Your monthly statement is ready. Log in to view.',
     time: 'Saturday',
   ),
   _Conversation(
-    name: 'Casey',
-    preview: 'Can you send me that recipe again?',
+    name: 'Harper',
+    preview: 'Send me that recipe when you get a sec?',
     time: 'Fri',
-    initial: 'C',
+    initial: 'H',
   ),
   _Conversation(
-    name: 'Fitness First',
+    name: 'PureGym',
     preview: 'Your class is confirmed for tomorrow at 6:45 AM. See you there!',
     time: 'Fri',
   ),
   _Conversation(
     name: 'Dad',
-    preview: 'Call me when you get a chance mate',
+    preview: 'Give me a call when you\'re free, nothing urgent',
     time: 'Thu',
     initial: 'D',
     isUnread: true,
@@ -284,8 +283,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final topPad = MediaQuery.paddingOf(context).top;
-    final botPad = MediaQuery.paddingOf(context).bottom;
+    final topPad = MediaQuery.paddingOf(context).top + 52;
+    final botPad = MediaQuery.paddingOf(context).bottom + 62;
 
     return GlassScaffold(
       background: ColoredBox(color: _kBg.resolveFrom(context)),
@@ -353,7 +352,7 @@ class _NavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassAppBar(
-      toolbarHeight: 52,
+      toolbarHeight: 152,
       // Bar title fades in automatically when large title collapses
       title: Text(
         'Messages',
@@ -713,83 +712,86 @@ class _SearchBarState extends State<_SearchBar> {
   Widget build(BuildContext context) {
     final isLight = CupertinoTheme.of(context).brightness == Brightness.light;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // ── Search + Compose bar ─────────────────────────────────────────────
-        // AdaptiveLiquidGlassLayer provides the rendering context.
-        // LiquidGlassBlendGroup inside makes the search pill and circle button
-        // liquid-merge when they are close together — matching native iOS 26.
-        Padding(
-          // Bottom padding: when there is a large safe-area inset (iOS home indicator)
-          // we subtract 8 so the bar sits at the desired visual height (26px).
-          // On devices with small or no insets (Android gesture nav, iPhone SE),
-          // a minimum padding of 32 ensures it's not too close to the bottom edge.
-          padding: EdgeInsets.fromLTRB(
-              12, 8, 12, widget.bottomPad > 32 ? widget.bottomPad - 8 : 32),
-          child: AdaptiveLiquidGlassLayer(
-            settings: _kSearchGlass(context),
-            quality: GlassQuality.premium,
-            blendAmount: 20,
-            child: LiquidGlassBlendGroup(
-              blend: 14,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Search pill
-                  Expanded(
-                    child: GlassSearchBar(
-                      focusNode: _focusNode,
-                      placeholder: 'Search',
-                      useOwnLayer:
-                          isLight, // joins blend group in dark, separates in light to show shadow
-                      settings: _kSearchGlass(context),
-                      quality: GlassQuality.premium,
-                      showsCancelButton: true,
-                      height: 48,
-                      onChanged: (_) {},
-                      onCancel: () {},
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Search + Compose bar ─────────────────────────────────────────────
+          // AdaptiveLiquidGlassLayer provides the rendering context.
+          // LiquidGlassBlendGroup inside makes the search pill and circle button
+          // liquid-merge when they are close together — matching native iOS 26.
+          Padding(
+            // Bottom padding: when there is a large safe-area inset (iOS home indicator)
+            // we subtract 8 so the bar sits at the desired visual height (26px).
+            // On devices with small or no insets (Android gesture nav, iPhone SE),
+            // a minimum padding of 32 ensures it's not too close to the bottom edge.
+            padding: EdgeInsets.fromLTRB(
+                12, 8, 12, widget.bottomPad > 32 ? widget.bottomPad - 8 : 32),
+            child: AdaptiveLiquidGlassLayer(
+              settings: _kSearchGlass(context),
+              quality: GlassQuality.premium,
+              blendAmount: 20,
+              child: LiquidGlassBlendGroup(
+                blend: 14,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Search pill
+                    Expanded(
+                      child: GlassSearchBar(
+                        focusNode: _focusNode,
+                        placeholder: 'Search',
+                        useOwnLayer:
+                            isLight, // joins blend group in dark, separates in light to show shadow
+                        settings: _kSearchGlass(context),
+                        quality: GlassQuality.premium,
+                        showsCancelButton: true,
+                        height: 48,
+                        onChanged: (_) {},
+                        onCancel: () {},
+                      ),
                     ),
-                  ),
 
-                  // Compose circle
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOutCubic,
-                    child: AnimatedOpacity(
-                      opacity: !_isFocused ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 180),
-                      child: !_isFocused
-                          ? Padding(
-                              padding: EdgeInsets.only(left: 10),
-                              child: GlassButton(
-                                onTap: () {},
-                                width: 48,
-                                height: 48,
-                                shape: const LiquidOval(),
-                                settings: _kSearchGlass(context),
-                                quality: GlassQuality.premium,
-                                useOwnLayer: isLight,
-                                stretch: 0.25,
-                                // Light mode: higher ambient so pressed state stays visible.
-                                ambientBaseLight: isLight ? 0.25 : 0.08,
-                                icon: Icon(
-                                  SFSymbols.square_and_pencil,
-                                  color: CupertinoColors.label
-                                      .resolveFrom(context),
-                                  size: 26, // Increased from 22
+                    // Compose circle
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOutCubic,
+                      child: AnimatedOpacity(
+                        opacity: !_isFocused ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 180),
+                        child: !_isFocused
+                            ? Padding(
+                                padding: EdgeInsets.only(left: 10),
+                                child: GlassButton(
+                                  onTap: () {},
+                                  width: 48,
+                                  height: 48,
+                                  shape: const LiquidOval(),
+                                  settings: _kSearchGlass(context),
+                                  quality: GlassQuality.premium,
+                                  useOwnLayer: isLight,
+                                  stretch: 0.25,
+                                  // Light mode: higher ambient so pressed state stays visible.
+                                  ambientBaseLight: isLight ? 0.25 : 0.08,
+                                  icon: Icon(
+                                    SFSymbols.square_and_pencil,
+                                    color: CupertinoColors.label
+                                        .resolveFrom(context),
+                                    size: 26, // Increased from 22
+                                  ),
                                 ),
-                              ),
-                            )
-                          : const SizedBox.shrink(),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

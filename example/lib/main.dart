@@ -156,9 +156,6 @@ class _ShowcaseHomePageState extends State<ShowcaseHomePage> {
       activeIcon: Icon(Icons.android, size: 26),
     ),
     GlassTab(
-      // Kept as the Apple logo, unlike the other three — this tab is
-      // specifically the Apple-app recreation gallery, so it's the one
-      // icon that's more accurate unchanged than swapped.
       label: 'IOS',
       icon: Icon(Icons.apple_outlined, size: 30),
       activeIcon: Icon(Icons.apple, size: 30),

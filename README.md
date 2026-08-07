@@ -259,6 +259,17 @@ from interactive indicators (segmented control pill, slider thumb) during animat
 Interactive glass controls already provide their own surface appearance via `backgroundColor`
 and `indicatorColor` — no outer container is needed for the track or background.
 
+**Catch this at edit-time, not runtime:** [`liquid_glass_lints`](https://github.com/sujit70777/liquid_glass_lints)
+is a `custom_lint` package that flags this exact mistake — an interactive glass widget nested
+inside `GlassCard` / `GlassContainer` / `GlassGroupedSection` — as a warning in your editor,
+before it ever ships as a silently-degraded glass surface.
+
+```yaml
+dev_dependencies:
+  custom_lint: ^0.8.1
+  liquid_glass_lints: ^0.0.1
+```
+
 
 ## Widget Categories
 

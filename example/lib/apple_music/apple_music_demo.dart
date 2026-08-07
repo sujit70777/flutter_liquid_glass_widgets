@@ -248,8 +248,12 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
       resizeToAvoidBottomInset: false,
 
       // ── Fixed header — fades on scroll (iOS large title pattern) ──────────
-      header:
-          (_selectedTab == 0 && !_isSearching) ? _buildListenNowHeader() : null,
+      header: (_selectedTab == 0 && !_isSearching)
+          ? Padding(
+              padding: const EdgeInsets.only(top: 65),
+              child: _buildListenNowHeader(),
+            )
+          : null,
       headerScrollController: _scrollController,
       headerFadeDistance: 30, // fast fade — matches real Apple Music
 
@@ -282,91 +286,96 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
       ),
 
       // ── Bottom navigation bar ──────────────────────────────────────────────
-      bottomBar: GlassTabBar.searchable(
-        isSearchActive: _isMiniMode || _isSearching,
-        bottomAccessoryPlacement: (_isMiniMode && !_isSearching)
-            ? GlassTabBarAccessoryPlacement.inline
-            : GlassTabBarAccessoryPlacement.expanded,
-        selectedIndex: _selectedTab,
-        onTabSelected: (index) {
-          if (index == _selectedTab && _isMiniMode) {
-            _dismissMiniMode();
-          } else {
-            final ctrl = switch (index) {
-              1 => _radioScrollController,
-              2 => _libraryScrollController,
-              _ => _scrollController,
-            };
-            final newMini = ctrl.hasClients && ctrl.offset > 50;
-            setState(() {
-              _selectedTab = index;
-              _isSearching = false;
-              _isMiniMode = newMini;
-            });
-          }
-        },
-        barHeight: _kBarH,
-        searchBarHeight: 50.0,
-        horizontalPadding: _kPaddingH,
-        verticalPadding: _kPaddingV,
-        spacing: _kSpacing,
-        // ── tabViewBottomAccessory (iOS 26) ─────────────────────────────────
-        // The play pill sits above the tab bar in expanded mode and animates
-        // inline beside the collapsed search capsule in mini mode — matching
-        // Apple's tabViewBottomAccessory(.inline) behaviour exactly.
-        bottomAccessory: _PlayBarPill(onTap: _dismissMiniMode),
-        bottomAccessoryHeight: 50.0,
-        bottomAccessoryEnabled: !_searchFieldFocused,
-        selectedIconColor: _kMusicRed,
-        unselectedIconColor:
-            CupertinoColors.label.resolveFrom(context).withValues(alpha: 0.9),
-        indicatorColor:
-            CupertinoColors.label.resolveFrom(context).withValues(alpha: 0.20),
-        labelFontSize: 10,
-        iconSize: 28,
-        iconLabelSpacing: 0,
-        quality: GlassQuality.premium,
-        interactionBehavior: GlassInteractionBehavior.full,
-        settings: _barGlassSettings,
-        searchConfig: GlassSearchBarConfig(
-          focusNode: _searchFocusNode,
-          autoFocusOnExpand: false,
-          showsCancelButton: true,
-          expandWhenActive: !_isMiniMode || _isSearching,
-          hintText: 'Apple Music',
-          onSearchToggle: (active) {
-            if (active) {
-              setState(() => _isSearching = true);
+      bottomBar: Padding(
+        padding: const EdgeInsets.only(bottom: 65),
+        child: GlassTabBar.searchable(
+          isSearchActive: _isMiniMode || _isSearching,
+          bottomAccessoryPlacement: (_isMiniMode && !_isSearching)
+              ? GlassTabBarAccessoryPlacement.inline
+              : GlassTabBarAccessoryPlacement.expanded,
+          selectedIndex: _selectedTab,
+          onTabSelected: (index) {
+            if (index == _selectedTab && _isMiniMode) {
+              _dismissMiniMode();
             } else {
+              final ctrl = switch (index) {
+                1 => _radioScrollController,
+                2 => _libraryScrollController,
+                _ => _scrollController,
+              };
+              final newMini = ctrl.hasClients && ctrl.offset > 50;
               setState(() {
+                _selectedTab = index;
                 _isSearching = false;
-                _searchFieldFocused = false;
+                _isMiniMode = newMini;
               });
-              if (_isMiniMode) _dismissMiniMode();
             }
           },
-          onSearchFocusChanged: (focused) =>
-              setState(() => _searchFieldFocused = focused),
-          searchIconColor:
+          barHeight: _kBarH,
+          searchBarHeight: 50.0,
+          horizontalPadding: _kPaddingH,
+          verticalPadding: _kPaddingV,
+          spacing: _kSpacing,
+          // ── tabViewBottomAccessory (iOS 26) ─────────────────────────────────
+          // The play pill sits above the tab bar in expanded mode and animates
+          // inline beside the collapsed search capsule in mini mode — matching
+          // Apple's tabViewBottomAccessory(.inline) behaviour exactly.
+          bottomAccessory: _PlayBarPill(onTap: _dismissMiniMode),
+          bottomAccessoryHeight: 50.0,
+          bottomAccessoryEnabled: !_searchFieldFocused,
+          selectedIconColor: _kMusicRed,
+          unselectedIconColor:
               CupertinoColors.label.resolveFrom(context).withValues(alpha: 0.9),
-          textInputAction: TextInputAction.search,
-          collapsedLogoBuilder: (context) {
-            final tab = _kTabs[_selectedTab];
-            final iconColor = _isMiniMode && !_isSearching
-                ? _kMusicRed
-                : CupertinoColors.label
-                    .resolveFrom(context)
-                    .withValues(alpha: 0.9);
-            final icon = tab.activeIcon ?? tab.icon;
-            if (icon is Icon) {
-              return Center(
-                child: Icon(icon.icon, color: iconColor, size: 28),
-              );
-            }
-            return icon ?? const SizedBox.shrink();
-          },
+          indicatorColor: CupertinoColors.label
+              .resolveFrom(context)
+              .withValues(alpha: 0.20),
+          labelFontSize: 10,
+          iconSize: 28,
+          iconLabelSpacing: 0,
+          quality: GlassQuality.premium,
+          interactionBehavior: GlassInteractionBehavior.full,
+          settings: _barGlassSettings,
+          searchConfig: GlassSearchBarConfig(
+            focusNode: _searchFocusNode,
+            autoFocusOnExpand: false,
+            showsCancelButton: true,
+            expandWhenActive: !_isMiniMode || _isSearching,
+            hintText: 'Apple Music',
+            onSearchToggle: (active) {
+              if (active) {
+                setState(() => _isSearching = true);
+              } else {
+                setState(() {
+                  _isSearching = false;
+                  _searchFieldFocused = false;
+                });
+                if (_isMiniMode) _dismissMiniMode();
+              }
+            },
+            onSearchFocusChanged: (focused) =>
+                setState(() => _searchFieldFocused = focused),
+            searchIconColor: CupertinoColors.label
+                .resolveFrom(context)
+                .withValues(alpha: 0.9),
+            textInputAction: TextInputAction.search,
+            collapsedLogoBuilder: (context) {
+              final tab = _kTabs[_selectedTab];
+              final iconColor = _isMiniMode && !_isSearching
+                  ? _kMusicRed
+                  : CupertinoColors.label
+                      .resolveFrom(context)
+                      .withValues(alpha: 0.9);
+              final icon = tab.activeIcon ?? tab.icon;
+              if (icon is Icon) {
+                return Center(
+                  child: Icon(icon.icon, color: iconColor, size: 28),
+                );
+              }
+              return icon ?? const SizedBox.shrink();
+            },
+          ),
+          tabs: _kTabs,
         ),
-        tabs: _kTabs,
       ),
     );
   }
@@ -379,7 +388,8 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
       controller: _scrollController,
       slivers: [
         SliverToBoxAdapter(
-          child: SizedBox(height: MediaQuery.paddingOf(context).top + 8 + 50),
+          child:
+              SizedBox(height: MediaQuery.paddingOf(context).top + 8 + 50 + 65),
         ),
         SliverToBoxAdapter(
           child: _HeroCard(
@@ -442,7 +452,7 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
       controller: _radioScrollController,
       slivers: [
         SliverToBoxAdapter(
-          child: SizedBox(height: MediaQuery.paddingOf(context).top + 8),
+          child: SizedBox(height: MediaQuery.paddingOf(context).top + 8 + 65),
         ),
         SliverToBoxAdapter(
           child: Padding(
@@ -533,7 +543,7 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
       controller: _libraryScrollController,
       slivers: [
         SliverToBoxAdapter(
-          child: SizedBox(height: MediaQuery.paddingOf(context).top + 8),
+          child: SizedBox(height: MediaQuery.paddingOf(context).top + 8 + 65),
         ),
         SliverToBoxAdapter(
           child: Padding(
@@ -640,7 +650,7 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
       key: key,
       slivers: [
         SliverToBoxAdapter(
-          child: SizedBox(height: MediaQuery.paddingOf(context).top + 8),
+          child: SizedBox(height: MediaQuery.paddingOf(context).top + 8 + 65),
         ),
         SliverToBoxAdapter(
           child: Padding(
@@ -897,7 +907,7 @@ class _HeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      height: 400,
+      height: 300,
       decoration: BoxDecoration(
         color: color,
         gradient: gradient,
