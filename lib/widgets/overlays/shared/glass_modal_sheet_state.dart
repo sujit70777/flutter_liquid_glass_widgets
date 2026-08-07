@@ -918,6 +918,7 @@ class _GlassModalSheetState extends State<GlassModalSheet>
           enableSaturationGlow: widget.enableSaturationGlow,
           enableTopFade: widget.enableTopFade,
           topFadeHeight: widget.topFadeHeight,
+          onDismiss: () => _snapToState(GlassSheetState.hidden),
           onFocusGained: () {
             if (_currentState != _geometry.maxState) {
               _snapToState(_geometry.maxState);

@@ -1,25 +1,23 @@
 /// Apple Music iOS 26 — High-Fidelity Demo
 ///
 /// Animation architecture:
-///   • `GlassSearchableBottomBar` uses `isSearchActive: _isMiniMode || _isSearching`
+///   • `GlassTabBar.searchable` uses `isSearchActive: _isMiniMode || _isSearching`
 ///     so the tabs spring-collapse whenever scrolled OR searching — matching the
 ///     iOS 26 morphing animation exactly.
 ///
-///   • Two play bar pills work in concert:
-///       1. Body-Stack pill   — full-width, floats ABOVE the nav bar when not mini.
-///          On scroll it AnimatedPositioned DOWN to bar level + AnimatedOpacity 0.
-///       2. NavBar-Stack pill — lives INSIDE the bottomNavigationBar SizedBox Stack
-///          so it receives taps even in the nav-bar hit-test zone.  It AnimatedOpacity
-///          fades IN when mini, always sitting at bar-pill level.
+///   • `bottomAccessory` handles the mini-player pill automatically:
+///       - When expanded (`!_isMiniMode`), the accessory sits centered directly
+///         above the navigation bar pill.
+///       - When inline (`_isMiniMode`), the accessory slides down and right,
+///         sandwiching itself exactly between the collapsed tab indicator and
+///         the collapsed search capsule.
 ///
-///     Together they create the illusion of "the bar collapses, the play pill slides
-///     into the gap", with the handoff invisible to the user.
-///
-///   • A small search GlassButton is also inside the NavBar Stack at the right
-///     edge — visible only in mini mode to match the iOS 26 [Home][Play][Search] row.
+///     The entire transition is handled internally by a single unified
+///     TweenAnimationBuilder, perfectly synchronizing height, position, and width
+///     to match the iOS 26 `tabViewBottomAccessory(.inline)` behavior.
 ///
 /// Run standalone:
-///   flutter run -t lib/apple_music/apple_music_demo.dart
+///   flutter run -d macos -t lib/apple_music/apple_music_demo.dart
 library;
 
 import 'package:flutter/cupertino.dart';
@@ -232,33 +230,10 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
         defaultTargetPlatform == TargetPlatform.macOS;
     final sysBottom = isIOS ? 0.0 : MediaQuery.viewPaddingOf(context).bottom;
 
-    // GlassSearchableBottomBar handles keyboard avoidance internally (floatY),
-    // so we only need to push the wrapper up by the system nav bar height.
-    final bottomOffset = sysBottom;
-
-    const double expandedNavBarH = 40 + 2 * _kPaddingV; // 72.0
-    const double collapsedNavBarH = 60.0; // searchBarHeight
-
-    // Gap b
-    const double pillGap = 14.0;
-
-    // aboveBarBottom: shifts down when search is active because the bar is
-    // shorter (50px vs 72px), so we anchor to whichever height is current.
-    final double activeNavBarH =
-        _isSearching ? collapsedNavBarH : expandedNavBarH;
-    final double aboveBarBottom = activeNavBarH + pillGap + bottomOffset;
-
-    // miniBarBottom: position of the pill row inside the body Stack.
-    final double miniBarBottom = _kPaddingV + bottomOffset;
-
-    // contentPad: extra bottom space so the last sliver scrolls above all bars.
-    final double contentPad = aboveBarBottom + 50.0 + 8.0;
-
-    // The collapsed home/search pills render at searchBarHeight (50), not _kBarH (64).
-    // Using _kBarH here causes an ~18px gap; 50+6 gives the tight ~6px Apple uses.
-    const double collapsedPillW = 50.0;
-    final double miniPlayLeft = _kPaddingH + collapsedPillW + 6.0;
-    final double miniPlayRight = _kPaddingH + collapsedPillW + 6.0;
+    // Content bottom padding: bar (64) + vertical padding (16*2) + accessory (50)
+    // + spacing (8) + extra clearance (8).
+    final double contentPad =
+        _kBarH + 2 * _kPaddingV + 50.0 + _kSpacing + 8.0 + sysBottom;
 
     return GlassScaffold(
       background: ColoredBox(color: _kBackground.resolveFrom(context)),
@@ -269,7 +244,6 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
       topEdgeFade: true,
       bottomEdgeFade: true,
       topEdgeFadeExtent: 0, // no app bar — just status bar fade
-      bottomBarHeight: _isMiniMode ? 20 : 40,
       bottomEdgeFadeExtent: 0, // glass bar is transparent — no extra fade
       resizeToAvoidBottomInset: false,
 
@@ -307,38 +281,12 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
         ),
       ),
 
-      // ── Play pill overlay (between body and bars in z-order) ───────────────
-      bodyOverlays: [
-        // ── Play pill (between body and bars in z-order) ──────────────────
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 420),
-          curve: Curves.easeInOutCubic,
-          bottom:
-              (_isMiniMode && !_isSearching) ? miniBarBottom : aboveBarBottom,
-          left: (_isMiniMode && !_isSearching) ? miniPlayLeft : _kPaddingH,
-          right: (_isMiniMode && !_isSearching) ? miniPlayRight : _kPaddingH,
-          height: 50.0,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeInOut,
-            opacity: _searchFieldFocused ? 0.0 : 1.0,
-            child: IgnorePointer(
-              ignoring: _searchFieldFocused,
-              child: _PlayBarPill(
-                onTap: () {
-                  if (_isMiniMode) {
-                    _dismissMiniMode();
-                  }
-                },
-              ),
-            ),
-          ),
-        ),
-      ],
-
       // ── Bottom navigation bar ──────────────────────────────────────────────
       bottomBar: GlassTabBar.searchable(
         isSearchActive: _isMiniMode || _isSearching,
+        bottomAccessoryPlacement: (_isMiniMode && !_isSearching)
+            ? GlassTabBarAccessoryPlacement.inline
+            : GlassTabBarAccessoryPlacement.expanded,
         selectedIndex: _selectedTab,
         onTabSelected: (index) {
           if (index == _selectedTab && _isMiniMode) {
@@ -362,6 +310,13 @@ class _AppleMusicHomeScreenState extends State<AppleMusicHomeScreen> {
         horizontalPadding: _kPaddingH,
         verticalPadding: _kPaddingV,
         spacing: _kSpacing,
+        // ── tabViewBottomAccessory (iOS 26) ─────────────────────────────────
+        // The play pill sits above the tab bar in expanded mode and animates
+        // inline beside the collapsed search capsule in mini mode — matching
+        // Apple's tabViewBottomAccessory(.inline) behaviour exactly.
+        bottomAccessory: _PlayBarPill(onTap: _dismissMiniMode),
+        bottomAccessoryHeight: 50.0,
+        bottomAccessoryEnabled: !_searchFieldFocused,
         selectedIconColor: _kMusicRed,
         unselectedIconColor:
             CupertinoColors.label.resolveFrom(context).withValues(alpha: 0.9),

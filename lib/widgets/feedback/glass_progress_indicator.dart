@@ -101,6 +101,7 @@ class GlassProgressIndicator extends StatefulWidget {
     this.useOwnLayer = false,
     this.settings,
     this.quality,
+    this.semanticLabel,
   })  : _type = _ProgressIndicatorType.circular,
         height = null,
         minWidth = null;
@@ -119,6 +120,7 @@ class GlassProgressIndicator extends StatefulWidget {
     this.useOwnLayer = false,
     this.settings,
     this.quality,
+    this.semanticLabel,
   })  : _type = _ProgressIndicatorType.linear,
         size = null,
         strokeWidth = null;
@@ -203,6 +205,19 @@ class GlassProgressIndicator extends StatefulWidget {
   /// If null, inherits from parent or theme, or defaults to [GlassQuality.standard].
   final GlassQuality? quality;
 
+  /// Overrides the VoiceOver / TalkBack label for this indicator.
+  ///
+  /// When null the default is `'Progress'`. Set this to describe what is
+  /// actually loading so screen-reader users get meaningful context:
+  ///
+  /// ```dart
+  /// GlassProgressIndicator.linear(
+  ///   value: downloadProgress,
+  ///   semanticLabel: 'Download progress',
+  /// )
+  /// ```
+  final String? semanticLabel;
+
   // ===========================================================================
   // Private Properties
   // ===========================================================================
@@ -273,7 +288,7 @@ class _GlassProgressIndicatorState extends State<GlassProgressIndicator>
         ? '${(widget.value!.clamp(0.0, 1.0) * 100).round()}%'
         : null;
     final semanticWidget = Semantics(
-      label: 'Progress',
+      label: widget.semanticLabel ?? 'Progress',
       value: valueStr,
       // liveRegion so dynamic changes are announced without needing focus
       liveRegion: widget.value != null,
@@ -335,6 +350,7 @@ class _GlassProgressIndicatorState extends State<GlassProgressIndicator>
               color: color,
               backgroundColor: backgroundColor,
               animation: _controller.value,
+              textDirection: Directionality.of(context),
             ),
           );
         },
@@ -437,12 +453,14 @@ class _LinearProgressPainter extends CustomPainter {
     required this.color,
     required this.backgroundColor,
     required this.animation,
+    required this.textDirection,
   });
 
   final double? value;
   final Color color;
   final Color backgroundColor;
   final double animation;
+  final TextDirection textDirection;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -471,12 +489,16 @@ class _LinearProgressPainter extends CustomPainter {
       // Bar width is 30% of track width
       final barWidth = width * 0.3;
       final position = animation * (width + barWidth) - barWidth;
-      progressX = position;
+
       progressWidth = barWidth;
+      progressX = textDirection == TextDirection.rtl
+          ? width - position - progressWidth
+          : position;
     } else {
-      // Determinate: fill from left
-      progressX = 0;
+      // Determinate: fill from left (or right in RTL)
       progressWidth = width * value!.clamp(0.0, 1.0);
+      progressX =
+          textDirection == TextDirection.rtl ? width - progressWidth : 0;
     }
 
     if (progressWidth > 0) {
@@ -510,7 +532,8 @@ class _LinearProgressPainter extends CustomPainter {
     return value != oldDelegate.value ||
         color != oldDelegate.color ||
         backgroundColor != oldDelegate.backgroundColor ||
-        animation != oldDelegate.animation;
+        animation != oldDelegate.animation ||
+        textDirection != oldDelegate.textDirection;
   }
 }
 

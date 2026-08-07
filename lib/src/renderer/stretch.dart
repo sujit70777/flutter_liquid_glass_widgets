@@ -277,6 +277,7 @@ class LiquidStretch extends StatelessWidget {
 /// handling and resistance.
 /// {@endtemplate}
 class RawLiquidStretch extends SingleChildRenderObjectWidget {
+  /// Creates a new [RawLiquidStretch].
   const RawLiquidStretch({
     required this.stretchPixels,
     required super.child,

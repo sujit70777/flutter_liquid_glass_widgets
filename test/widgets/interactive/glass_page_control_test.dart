@@ -343,4 +343,110 @@ void main() {
       expect(find.byType(GlassPageControl), findsOneWidget);
     });
   });
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Semantics
+  // ────────────────────────────────────────────────────────────────────────────
+
+  group('GlassPageControl semantics', () {
+    testWidgets('announces default "Page N of M" label', (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassPageControl(
+            count: 5,
+            currentPage: 1,
+            onPageChanged: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+      final semanticsNodes = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassPageControl),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        semanticsNodes.any((s) => s.properties.label == 'Page 2 of 5'),
+        isTrue,
+        reason: 'Default label should be "Page N of M" (1-indexed)',
+      );
+    });
+
+    testWidgets('custom semanticLabel overrides default', (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassPageControl(
+            count: 3,
+            currentPage: 2,
+            semanticLabel: 'Slide 3 of 3',
+            onPageChanged: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+      final semanticsNodes = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassPageControl),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        semanticsNodes.any((s) => s.properties.label == 'Slide 3 of 3'),
+        isTrue,
+        reason: 'semanticLabel must override the default',
+      );
+    });
+
+    testWidgets('has tap hint when onPageChanged is set', (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassPageControl(
+            count: 3,
+            currentPage: 0,
+            onPageChanged: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+      final semanticsNodes = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassPageControl),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        semanticsNodes.any(
+          (s) => s.properties.hint != null && s.properties.hint!.isNotEmpty,
+        ),
+        isTrue,
+        reason: 'Interactive control should have a tap hint',
+      );
+    });
+
+    testWidgets('no tap hint when onPageChanged is null', (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: const GlassPageControl(count: 3, currentPage: 0),
+        ),
+      );
+      await tester.pump();
+      final outerSemantics = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassPageControl),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        outerSemantics.any(
+          (s) =>
+              s.properties.label != null &&
+              s.properties.label!.startsWith('Page') &&
+              (s.properties.hint == null || s.properties.hint!.isEmpty),
+        ),
+        isTrue,
+        reason: 'Non-interactive control should have no tap hint',
+      );
+    });
+  });
 }

@@ -276,7 +276,7 @@ class GlassPopover extends StatefulWidget {
 
   /// Called when the popover begins opening.
   ///
-  /// Fires immediately when [open] is triggered, before the animation starts.
+  /// Fires immediately when the popover is triggered, before the animation starts.
   final VoidCallback? onOpen;
 
   /// Whether tapping outside the popover dismisses it.

@@ -19,10 +19,12 @@ import 'glass_bottom_bar.dart'
 import 'glass_searchable_bottom_bar.dart' show GlassSearchableBottomBar;
 import 'shared/glass_search_bar_config.dart';
 import 'shared/tab_bar_searchable_controller.dart';
-import 'shared/tab_bar_bottom_layout.dart';
-import 'shared/tab_bar_searchable_layout.dart';
+import '../../src/widgets/surfaces/tab_bar_bottom_layout.dart';
+import '../../src/widgets/surfaces/tab_bar_searchable_layout.dart';
 
 export 'shared/glass_search_bar_config.dart';
+export 'shared/tab_bar_accessory_placement.dart';
+import 'shared/tab_bar_accessory_placement.dart';
 
 /// The iOS 26 structural navigation bar widget.
 ///
@@ -126,7 +128,7 @@ enum _GlassTabBarPlacement { bottom, searchable, inline }
 /// ```
 ///
 /// The old widgets still work — they are zero-logic deprecation shims.
-class GlassTabBar extends StatefulWidget {
+class GlassTabBar extends StatefulWidget implements PreferredSizeWidget {
   // ─── Bottom constructor ────────────────────────────────────────────────────
 
   /// Creates a floating bottom tab bar — the iOS 26 `UITabBarController` equivalent.
@@ -138,9 +140,17 @@ class GlassTabBar extends StatefulWidget {
   ///
   /// ## Play-pill / mini-player accessory
   ///
-  /// Place persistent overlays (mini-player, Now Playing) above the bar using
-  /// [GlassScaffold.bodyOverlays] + [AnimatedPositioned] — not inside this
-  /// widget. That is the equivalent of Apple's `tabViewBottomAccessory`.
+  /// Pass a widget to [bottomAccessory] to render a persistent overlay (e.g. a
+  /// mini-player) above the glass tab bar pill — identical to iOS 26's
+  /// `tabViewBottomAccessory` modifier.
+  ///
+  /// Supply [bottomAccessoryHeight] so that [GlassScaffold] can include the
+  /// accessory in its `effectiveBottomBarHeight` (via [preferredSize]) and
+  /// correctly compute body edge-fades. If omitted the scroll area will be
+  /// inset only by the pill height.
+  ///
+  /// Toggle visibility with [bottomAccessoryEnabled]: the accessory animates
+  /// in/out with an `AnimatedSize` so there is no jump.
   const GlassTabBar.bottom({
     required List<GlassTab> tabs,
     required int selectedIndex,
@@ -149,6 +159,10 @@ class GlassTabBar extends StatefulWidget {
     GlassTabBarExtraButton? extraButton,
     GlassBottomBarCollapseConfig? collapseConfig,
     ScrollController? scrollController,
+    Widget? bottomAccessory,
+    bool bottomAccessoryEnabled = true,
+    double bottomAccessorySpacing = 6.0,
+    double? bottomAccessoryHeight,
     double spacing = 8,
     double horizontalPadding = 20,
     double verticalPadding = 20,
@@ -203,6 +217,10 @@ class GlassTabBar extends StatefulWidget {
           extraButton: extraButton,
           collapseConfig: collapseConfig,
           scrollController: scrollController,
+          bottomAccessory: bottomAccessory,
+          bottomAccessoryEnabled: bottomAccessoryEnabled,
+          bottomAccessorySpacing: bottomAccessorySpacing,
+          bottomAccessoryHeight: bottomAccessoryHeight,
           spacing: spacing,
           horizontalPadding: horizontalPadding,
           verticalPadding: verticalPadding,
@@ -400,6 +418,11 @@ class GlassTabBar extends StatefulWidget {
     SearchableBottomBarController? controller,
     bool isSearchActive = false,
     GlassTabBarExtraButton? extraButton,
+    GlassTabBarAccessoryPlacement? bottomAccessoryPlacement,
+    Widget? bottomAccessory,
+    bool bottomAccessoryEnabled = true,
+    double bottomAccessorySpacing = 6.0,
+    double? bottomAccessoryHeight,
     double spacing = 8,
     double horizontalPadding = 20,
     double verticalPadding = 20,
@@ -463,6 +486,11 @@ class GlassTabBar extends StatefulWidget {
           controller: controller,
           isSearchActive: isSearchActive,
           extraButton: extraButton,
+          bottomAccessoryPlacement: bottomAccessoryPlacement,
+          bottomAccessory: bottomAccessory,
+          bottomAccessoryEnabled: bottomAccessoryEnabled,
+          bottomAccessorySpacing: bottomAccessorySpacing,
+          bottomAccessoryHeight: bottomAccessoryHeight,
           spacing: spacing,
           horizontalPadding: horizontalPadding,
           verticalPadding: verticalPadding,
@@ -572,6 +600,11 @@ class GlassTabBar extends StatefulWidget {
       this.adaptiveBrightness = false,
       this.onBrightnessChanged,
       this.brightnessOverride,
+      this.bottomAccessoryPlacement,
+      this.bottomAccessory,
+      this.bottomAccessoryEnabled = true,
+      this.bottomAccessorySpacing = 6.0,
+      this.bottomAccessoryHeight,
       // Searchable-only
       this.searchConfig,
       this.controller,
@@ -595,6 +628,12 @@ class GlassTabBar extends StatefulWidget {
               collapseConfig == null ||
               extraButton != null,
           'GlassTabBar.bottom collapseConfig requires extraButton.',
+        ),
+        assert(
+          bottomAccessory == null || bottomAccessoryHeight != null,
+          'Provide bottomAccessoryHeight when using bottomAccessory so that '
+          'GlassScaffold can correctly compute the body scroll inset and '
+          'edge-fade height. Without it, content will scroll behind the accessory.',
         );
 
   /// List of tabs to display.
@@ -645,7 +684,7 @@ class GlassTabBar extends StatefulWidget {
   ///
   /// - [MaskingQuality.high] (default): Full jelly-bloom physics — the
   ///   indicator expands 8 px beyond its pill bounds for the iOS 26 spring
-  ///   effect. Uses a dual-layer [GlassBottomBarClipper] path.
+  ///   effect. Uses a dual-layer clipping path.
   /// - [MaskingQuality.off]: Simple clipping with no jelly expansion.
   ///   Cheaper on GPU; useful for low-end devices or accessibility modes.
   ///
@@ -791,6 +830,44 @@ class GlassTabBar extends StatefulWidget {
   final ValueListenable<Brightness>? brightnessOverride;
 
   // ---------------------------------------------------------------------------
+  // Accessory / Mini-Player fields
+  // ---------------------------------------------------------------------------
+
+  /// The widget to display above the tab bar pill (e.g. a mini-player).
+  ///
+  /// This mirrors the iOS 26 `tabViewBottomAccessory` API.
+  final GlassTabBarAccessoryPlacement? bottomAccessoryPlacement;
+
+  /// The accessory widget rendered above (expanded) or beside (inline) the tab
+  /// bar pill. Typically a mini-player or contextual action row.
+  ///
+  /// The accessory widget can read its current placement via
+  /// [GlassTabBarAccessoryPlacementScope.of] to adapt its layout between the
+  /// full expanded row and the compact inline strip.
+  final Widget? bottomAccessory;
+
+  /// Controls whether the [bottomAccessory] is shown.
+  ///
+  /// When toggled, the accessory animates in/out using `AnimatedSize` with an
+  /// iOS 26-calibrated ease-out cubic curve (300 ms). [preferredSize] is
+  /// updated in sync so [GlassScaffold] always reports the correct body inset.
+  final bool bottomAccessoryEnabled;
+
+  /// Vertical gap between the [bottomAccessory] and the glass tab bar.
+  final double bottomAccessorySpacing;
+
+  /// The known height of the [bottomAccessory].
+  ///
+  /// **Required for correct [GlassScaffold] integration.** When provided,
+  /// [preferredSize] includes this value so the scaffold's body edge-fade
+  /// correctly clears the accessory. If omitted, the scaffold sees only the
+  /// pill height and content will scroll behind the accessory.
+  ///
+  /// Must be the rendered height of the accessory widget, excluding
+  /// [bottomAccessorySpacing] (which is added automatically).
+  final double? bottomAccessoryHeight;
+
+  // ---------------------------------------------------------------------------
   // Searchable-only fields
   // ---------------------------------------------------------------------------
 
@@ -828,6 +905,44 @@ class GlassTabBar extends StatefulWidget {
   final ScrollController? scrollController;
 
   @override
+  Size get preferredSize {
+    // Base pill height. The searchable variant alternates between barHeight
+    // (expanded) and searchBarHeight (inline/mini) — use whichever is active.
+    // Both branches multiply verticalPadding by 2 (top + bottom) to match
+    // the symmetric Padding applied inside AdaptiveLiquidGlassLayer.
+    final effectivePillH =
+        (_placement == _GlassTabBarPlacement.searchable && isSearchActive)
+            ? searchBarHeight + verticalPadding * 2
+            : barHeight + verticalPadding * 2;
+
+    double total = effectivePillH;
+
+    // In inline mode the accessory sits BESIDE the pill (no extra height).
+    // Only explicit .inline placement counts — never auto-infer from search state,
+    // because the layout engine (TabBarSearchableLayout) does NOT auto-collapse either.
+    final isInline =
+        bottomAccessoryPlacement == GlassTabBarAccessoryPlacement.inline;
+
+    if (bottomAccessory != null &&
+        !isInline &&
+        bottomAccessoryEnabled &&
+        bottomAccessoryHeight != null) {
+      // Guard: gapAdjustment only makes sense in the searchable placement when
+      // both heights differ. For .bottom placement isSearchActive is always false
+      // so effectivePillH == barHeight + vertPad*2 and gapAdjustment == 0.
+      final gapAdjustment =
+          (_placement == _GlassTabBarPlacement.searchable && isSearchActive)
+              ? barHeight - searchBarHeight
+              : 0.0;
+      total = effectivePillH -
+          gapAdjustment +
+          bottomAccessorySpacing +
+          bottomAccessoryHeight!;
+    }
+    return Size.fromHeight(total);
+  }
+
+  @override
   State<GlassTabBar> createState() => _GlassTabBarState();
 }
 
@@ -858,6 +973,9 @@ class _GlassTabBarState extends State<GlassTabBar> {
       onTabSelected: widget.onTabSelected,
       extraButton: widget.extraButton,
       collapseConfig: widget.collapseConfig,
+      bottomAccessory: widget.bottomAccessory,
+      bottomAccessoryEnabled: widget.bottomAccessoryEnabled,
+      bottomAccessorySpacing: widget.bottomAccessorySpacing,
       spacing: widget.spacing,
       horizontalPadding: widget.horizontalPadding,
       verticalPadding: widget.verticalPadding,
@@ -974,6 +1092,11 @@ class _GlassTabBarState extends State<GlassTabBar> {
       controller: widget.controller,
       isSearchActive: widget.isSearchActive,
       extraButton: widget.extraButton,
+      bottomAccessoryPlacement: widget.bottomAccessoryPlacement,
+      bottomAccessory: widget.bottomAccessory,
+      bottomAccessoryEnabled: widget.bottomAccessoryEnabled,
+      bottomAccessorySpacing: widget.bottomAccessorySpacing,
+      bottomAccessoryHeight: widget.bottomAccessoryHeight,
       spacing: widget.spacing,
       horizontalPadding: widget.horizontalPadding,
       verticalPadding: widget.verticalPadding,
@@ -1253,6 +1376,7 @@ class DividerSettings {
   /// When true, dividers adjacent to the selected tab are hidden automatically.
   final bool isHideAutomatically;
 
+  /// Creates a new [DividerSettings].
   const DividerSettings({
     this.indent = 0,
     this.endIndent = 0,

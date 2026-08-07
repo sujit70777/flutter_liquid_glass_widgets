@@ -35,6 +35,7 @@ import 'inherited_liquid_glass.dart';
 /// )
 /// ```
 class AdaptiveGlass extends StatelessWidget {
+  /// Creates a new [AdaptiveGlass].
   const AdaptiveGlass({
     required this.shape,
     required this.settings,

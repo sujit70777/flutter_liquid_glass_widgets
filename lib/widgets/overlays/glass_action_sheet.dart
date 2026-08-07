@@ -6,6 +6,8 @@ import '../../theme/glass_theme_data.dart';
 import '../../theme/glass_theme.dart';
 import '../../types/glass_quality.dart';
 import '../shared/adaptive_liquid_glass_layer.dart';
+import '../shared/glass_focus_region.dart';
+import '../shared/glass_interaction_state_mixin.dart';
 
 /// Style of action sheet action.
 enum GlassActionSheetStyle {
@@ -19,7 +21,7 @@ enum GlassActionSheetStyle {
   cancel,
 }
 
-/// An action that can be taken from a [GlassActionSheet].
+/// An action that can be taken from a [showGlassActionSheet] call.
 class GlassActionSheetAction {
   /// Creates an action sheet action.
   const GlassActionSheetAction({
@@ -44,7 +46,7 @@ class GlassActionSheetAction {
 
 /// A glass morphism action sheet following iOS 26 liquid glass design.
 ///
-/// [GlassActionSheet] provides an iOS-style bottom action sheet with:
+/// This action sheet provides an iOS-style bottom action sheet with:
 /// - iOS 26 liquid glass backdrop effect
 /// - Bottom-anchored action list
 /// - Destructive action styling (red text/icon)
@@ -134,7 +136,7 @@ class GlassActionSheetAction {
 /// - **GlassActionSheet**: Predefined action list (like iOS UIAlertController)
 /// - **GlassSheet**: Custom content (like iOS UISheetPresentationController)
 ///
-/// Use [GlassActionSheet] when you need a simple action picker.
+/// Use [showGlassActionSheet] when you need a simple action picker.
 /// Use [GlassSheet] when you need custom content or forms.
 Future<T?> showGlassActionSheet<T>({
   required BuildContext context,
@@ -343,8 +345,10 @@ class _ActionSheetButton extends StatefulWidget {
   State<_ActionSheetButton> createState() => _ActionSheetButtonState();
 }
 
-class _ActionSheetButtonState extends State<_ActionSheetButton> {
-  bool _isPressed = false;
+class _ActionSheetButtonState extends State<_ActionSheetButton>
+    with GlassInteractionStateMixin {
+  // Interaction state (isPressed, isFocused, pressedAndFocused)
+  // is provided by GlassInteractionStateMixin.
 
   @override
   Widget build(BuildContext context) {
@@ -354,49 +358,70 @@ class _ActionSheetButtonState extends State<_ActionSheetButton> {
         ? FontWeight.w600
         : FontWeight.w400;
 
-    return GestureDetector(
-      onTap: () {
-        action.onPressed();
-        if (action.style != GlassActionSheetStyle.cancel) {
-          Navigator.of(context).pop();
-        }
-      },
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration:
-            _isPressed ? Duration.zero : const Duration(milliseconds: 150),
-        curve: Curves.easeOutCubic,
-        color: _isPressed
-            ? CupertinoColors.label.resolveFrom(context).withValues(alpha: 0.06)
-            : const Color(0x00000000),
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (action.icon != null) ...[
-              IconTheme(
-                data: IconThemeData(color: textColor, size: 20),
-                child: action.icon!,
+    void handleTap() {
+      action.onPressed();
+      if (action.style != GlassActionSheetStyle.cancel) {
+        Navigator.of(context).pop();
+      }
+    }
+
+    return GlassFocusRegion(
+      enabled: true,
+      // No shape → background highlight pattern for sheet rows, not outset ring.
+      isFocusedNotifier: isFocused,
+      isButton: true,
+      semanticLabel: action.label,
+      onKeyboardActivate: handleTap,
+      semanticOnTap: handleTap,
+      child: GestureDetector(
+        onTap: handleTap,
+        onTapDown: (_) => isPressed.value = true,
+        onTapUp: (_) => isPressed.value = false,
+        onTapCancel: () => isPressed.value = false,
+        behavior: HitTestBehavior.opaque,
+        child: ListenableBuilder(
+          listenable: pressedAndFocused,
+          builder: (context, child) {
+            final bool showHighlight = isPressed.value || isFocused.value;
+            return AnimatedContainer(
+              duration: isPressed.value
+                  ? Duration.zero
+                  : const Duration(milliseconds: 150),
+              curve: Curves.easeOutCubic,
+              color: showHighlight
+                  ? CupertinoColors.label
+                      .resolveFrom(context)
+                      .withValues(alpha: 0.06)
+                  : const Color(0x00000000),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
               ),
-              const SizedBox(width: 12),
+              child: child,
+            );
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (action.icon != null) ...[
+                IconTheme(
+                  data: IconThemeData(color: textColor, size: 20),
+                  child: action.icon!,
+                ),
+                const SizedBox(width: 12),
+              ],
+              Text(
+                action.label,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 17,
+                  fontWeight: fontWeight,
+                  letterSpacing: -0.3,
+                ),
+              ),
             ],
-            Text(
-              action.label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 17,
-                fontWeight: fontWeight,
-                letterSpacing: -0.3,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

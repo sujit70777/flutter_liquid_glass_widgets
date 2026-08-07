@@ -21,7 +21,7 @@ enum MorphSpeed {
   /// Fast, snappy morph. Suitable for power users or high-frequency interactions.
   fast,
 
-  /// Near-instant transition. Use for [ReducedMotion] environments or testing.
+  /// Near-instant transition. Use when the user has enabled Reduce Motion, or for testing.
   instant,
 }
 

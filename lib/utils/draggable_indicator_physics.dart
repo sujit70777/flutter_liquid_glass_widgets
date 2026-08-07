@@ -194,7 +194,13 @@ class DraggableIndicatorPhysics {
         direction == Axis.horizontal ? localPosition.dx : localPosition.dy;
     final mainExtent =
         direction == Axis.horizontal ? box.size.width : box.size.height;
-    final rawRelativeX = (mainPosition / mainExtent).clamp(0.0, 1.0);
+    var rawRelativeX = (mainPosition / mainExtent).clamp(0.0, 1.0);
+
+    if (direction == Axis.horizontal &&
+        Directionality.of(context) == TextDirection.rtl) {
+      rawRelativeX = 1.0 - rawRelativeX;
+    }
+
     final normalizedX = (rawRelativeX - padding) / draggableRange;
 
     // Apply rubber band resistance for overdrag
@@ -221,7 +227,7 @@ class DraggableIndicatorPhysics {
   /// - [itemCount]: Total number of items (tabs)
   /// - [direction]: Axis along which the bar is laid out (default: horizontal)
   ///
-  /// Returns: The item index (0-based, clamped to [0, itemCount-1]).
+  /// Returns: The item index (0-based, clamped to `0 – itemCount-1`).
   ///
   /// Example:
   /// ```dart
@@ -239,12 +245,13 @@ class DraggableIndicatorPhysics {
   }) {
     final box = context.findRenderObject()! as RenderBox;
     final localPosition = box.globalToLocal(globalPosition);
-    final mainPosition =
-        direction == Axis.horizontal ? localPosition.dx : localPosition.dy;
-    final mainExtent =
+    final width =
         direction == Axis.horizontal ? box.size.width : box.size.height;
-    final rawRelativeX = (mainPosition / mainExtent).clamp(0.0, 1.0);
-    return (rawRelativeX * itemCount).floor().clamp(0, itemCount - 1);
+    double fraction =
+        (direction == Axis.horizontal ? localPosition.dx : localPosition.dy) /
+            width;
+
+    return (fraction * itemCount).floor().clamp(0, itemCount - 1);
   }
 
   // ===========================================================================

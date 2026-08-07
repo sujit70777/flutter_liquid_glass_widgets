@@ -4,7 +4,22 @@ part of '../glass_modal_sheet.dart';
 // Sheet States & Modes
 // ===========================================================================
 
-enum GlassSheetState { hidden, peek, half, full }
+/// The discrete snap positions a [GlassModalSheet] can occupy.
+enum GlassSheetState {
+  /// Sheet is fully offscreen — invisible and not interactable.
+  hidden,
+
+  /// Sheet shows only a small peek strip at the bottom of the screen.
+  ///
+  /// Acts as the resting floor for [GlassSheetMode.persistent] sheets.
+  peek,
+
+  /// Sheet is at its medium-height glass stop (roughly half the screen).
+  half,
+
+  /// Sheet covers the full screen and transitions to an opaque solid color.
+  full,
+}
 
 /// The resting heights a sheet may stop at, chosen via
 /// [GlassModalSheet.detents]. Mirrors UIKit's sheet detents:
@@ -26,8 +41,18 @@ enum GlassSheetState { hidden, peek, half, full }
 /// `detents.contains(small)` stops working and two smalls with different
 /// settings could sit in one set at once. Keeping the detent a plain enum
 /// keeps set membership meaning exactly one thing.
-enum GlassSheetDetent { small, medium, large }
+enum GlassSheetDetent {
+  /// The peek-floor detent — a small strip at the bottom edge, maps to [GlassSheetState.peek].
+  small,
 
+  /// The medium-height glass detent — typically 45% of screen height, maps to [GlassSheetState.half].
+  medium,
+
+  /// The full-screen detent — covers the screen and uses a solid fill, maps to [GlassSheetState.full].
+  large,
+}
+
+/// Controls whether the sheet can be swiped to dismiss or must stay docked.
 enum GlassSheetMode {
   /// Scenario 1: hidden ↔ half ↔ full
   /// Can swipe down from half to hidden. From full → half → hidden.
@@ -39,6 +64,8 @@ enum GlassSheetMode {
   persistent,
 }
 
+/// Controls how the sheet transitions from its glass look to a solid color
+/// as it expands toward [GlassSheetState.full].
 enum GlassFillTransition {
   /// Gradual transition through gradient (current behavior)
   gradual,
@@ -51,13 +78,25 @@ enum GlassFillTransition {
 // SheetStateMachine — isolated state machine
 // ===========================================================================
 
-/// Immutable state of the sheet at any given moment.
+/// Immutable snapshot of the sheet's physical state at a single moment in time.
+///
+/// Passed to the sheet's gesture resolver and state machine to determine
+/// target snap positions and resistance.
 class SheetSnapshot {
+  /// The current logical snap state (which detent the sheet was last snapped to).
   final GlassSheetState state;
-  final double position; // 0.0 .. 1.0 fraction of screen height
-  final double velocity; // pixels/second, positive = up
+
+  /// Sheet height as a fraction of screen height (0.0 = hidden, 1.0 = full screen).
+  final double position;
+
+  /// Current drag velocity in logical pixels per second.
+  /// Positive values mean the sheet is moving upward (expanding).
+  final double velocity;
+
+  /// The screen dimensions at the time this snapshot was captured.
   final Size screenSize;
 
+  /// Creates an immutable sheet state snapshot.
   const SheetSnapshot({
     required this.state,
     required this.position,
@@ -65,6 +104,7 @@ class SheetSnapshot {
     required this.screenSize,
   });
 
+  /// Returns a copy of this snapshot with the given fields replaced.
   SheetSnapshot copyWith({
     GlassSheetState? state,
     double? position,
@@ -78,6 +118,10 @@ class SheetSnapshot {
         screenSize: screenSize ?? this.screenSize,
       );
 
+  /// Normalized progress between the half and full snap positions.
+  ///
+  /// Returns 0.0 when at or below the half detent, and 1.0 when at the full
+  /// detent. Used to drive the glass-to-solid color crossfade.
   double get expandProgress {
     final halfPos =
         SheetGeometry.positionFor(GlassSheetState.half, screenSize.height);
@@ -92,17 +136,39 @@ class SheetSnapshot {
       'SheetSnapshot(state: $state, pos: ${position.toStringAsFixed(4)}, vel: ${velocity.toStringAsFixed(1)})';
 }
 
-/// Pure geometry calculations — no BuildContext, no side effects.
+/// Pure geometry calculations for sheet snap positions — no [BuildContext], no side effects.
+///
+/// Encapsulates which detents are active, their physical positions, and the
+/// logic for resolving snap targets and rubber-band resistance. Fully testable
+/// without a widget tree.
 class SheetGeometry {
+  /// The dismissal mode (dismissible vs persistent floor).
   final GlassSheetMode mode;
+
+  /// Height of the [GlassSheetState.half] detent in logical pixels (> 1.0)
+  /// or as a screen-height fraction (≤ 1.0).
   final double halfSize;
+
+  /// Optional explicit height for the [GlassSheetState.full] detent.
+  /// When null, defaults to `screenHeight - 90.0`.
   final double? fullSize;
+
+  /// Height of the [GlassSheetState.peek] floor detent.
   final double peekSize;
+
+  /// Whether the peek floor detent is active.
   final bool enablePeek;
+
+  /// Whether the half-height detent is active.
   final bool enableHalf;
+
+  /// Whether the full-screen detent is active.
   final bool enableFull;
+
+  /// Whether the sheet can be dragged below its lowest detent to dismiss.
   final bool dismissible;
 
+  /// Creates a sheet geometry configuration.
   const SheetGeometry({
     required this.mode,
     required this.halfSize,
@@ -159,6 +225,10 @@ class SheetGeometry {
     return states;
   }
 
+  /// Returns the normalized position (0.0–1.0) for [state] given [screenHeight].
+  ///
+  /// Values > 1.0 passed as size parameters are treated as absolute pixel
+  /// heights and divided by [screenHeight]; values ≤ 1.0 are used as-is.
   static double positionFor(
     GlassSheetState state,
     double screenHeight, {
@@ -187,6 +257,8 @@ class SheetGeometry {
     }
   }
 
+  /// Like [positionFor] but applies cascade constraints so snap positions are
+  /// always ordered: `hidden ≤ peek ≤ half ≤ full`.
   double positionForState(GlassSheetState state, double screenHeight) {
     final hiddenPos = positionFor(GlassSheetState.hidden, screenHeight,
         mode: mode, halfSize: halfSize, fullSize: fullSize, peekSize: peekSize);
@@ -214,7 +286,10 @@ class SheetGeometry {
     }
   }
 
+  /// The lowest detent in the active configuration.
   GlassSheetState get minState => orderedStates.first;
+
+  /// The highest detent in the active configuration.
   GlassSheetState get maxState => orderedStates.last;
 
   /// Computes target state based on current position and velocity.
@@ -317,6 +392,15 @@ class SheetGeometry {
 // Controllers
 // ===========================================================================
 
+/// Programmatic controller for a [GlassModalSheet].
+///
+/// Pass to [GlassModalSheet.controller] or [GlassModalSheetScaffold.controller]
+/// to snap the sheet between states without user interaction.
+///
+/// One controller drives one mounted sheet at a time. The controller is
+/// safe to reuse across widget rebuilds — it guards against stale attachment
+/// during hot-swap (key changes) the same way Flutter's own [ScrollController]
+/// does.
 class GlassModalSheetController {
   _GlassModalSheetState? _state;
 
@@ -332,16 +416,24 @@ class GlassModalSheetController {
     if (_state == state) _state = null;
   }
 
+  /// Snaps the sheet to [state], optionally animating the transition.
+  ///
+  /// When [animate] is `false` the sheet jumps instantly. [velocity] seeds the
+  /// spring simulation's initial velocity (pixels/second, upward positive).
   void snapToState(GlassSheetState state,
       {bool animate = true, double velocity = 0}) {
     _state?._snapToState(state, animate: animate, velocity: velocity);
   }
 
+  /// The snap state the sheet is currently resting at (or animating toward).
   GlassSheetState get currentState =>
       _state?._currentState ?? GlassSheetState.hidden;
 
-  /// Internal expansion value (0.0 to 1.0).
-  /// Primarily used for testing and synchronized animations.
+  /// Raw sheet position as a screen-height fraction (0.0–1.0).
+  ///
+  /// Reading during an animation gives the instantaneous value. Setting this
+  /// property jumps the sheet without animation — useful for syncing to a
+  /// drag gesture's direct-manipulation offset.
   double get value => _state?._currentPosition ?? 0.0;
   set value(double newValue) {
     _state?._jumpTo(newValue);
@@ -360,28 +452,60 @@ class GlassModalSheetController {
 // GestureArena — unified gesture handling
 // ===========================================================================
 
-enum GesturePhase { idle, handleDrag, contentDrag, scrolling }
+/// Tracks which gesture mode the [GestureArena] is currently in.
+enum GesturePhase {
+  /// No active gesture — waiting for the next pointer down.
+  idle,
 
+  /// User is dragging the sheet via its handle zone.
+  handleDrag,
+
+  /// User is dragging the sheet via its content area.
+  contentDrag,
+
+  /// The inner scroll view has claimed the gesture.
+  scrolling,
+}
+
+/// Unified gesture disambiguator for [GlassModalSheet].
+///
+/// Decides, on every pointer-move event, whether the sheet or an inner
+/// [ScrollView] should own the current gesture. Mutable so it can be reset
+/// between pointer sequences without allocating a new instance.
 class GestureArena {
+  /// Current gesture ownership phase.
   GesturePhase phase = GesturePhase.idle;
+
+  /// Y-coordinate of the pointer when the current gesture began.
   double dragStartY = 0.0;
+
+  /// X-coordinate of the pointer when the current gesture began.
   double dragStartX = 0.0;
+
+  /// Sheet position (fraction of screen height) when the current gesture began.
   double dragStartSheetPosition = 0.0;
+
+  /// Whether the disambiguated gesture direction is vertical.
   bool isVerticalGesture = false;
+
+  /// Tracks pointer samples to compute a fling velocity at gesture end.
   VelocityTracker velocityTracker =
       VelocityTracker.withKind(PointerDeviceKind.touch);
 
+  /// Resets the arena to [GesturePhase.idle] between pointer sequences.
   void reset() {
     phase = GesturePhase.idle;
     isVerticalGesture = false;
   }
 
+  /// Called when a pointer-down event lands in the sheet's handle zone.
   void beginHandleDrag(double y, double sheetPosition) {
     phase = GesturePhase.handleDrag;
     dragStartY = y;
     dragStartSheetPosition = sheetPosition;
   }
 
+  /// Called when a pointer-down event lands in the sheet's content area.
   void beginPointer(
       double y, double x, double sheetPosition, PointerDeviceKind kind) {
     phase = GesturePhase.idle;
@@ -451,10 +575,19 @@ class GestureArena {
 // FrozenState — immutable freeze record
 // ===========================================================================
 
+/// Immutable record capturing the sheet's visual state at the moment it was
+/// "frozen" for a spring-back animation.
+///
+/// Stored while the sheet is animating back from an over-drag, so the
+/// spring can interpolate smoothly back to the correct detent geometry.
 class FrozenState {
+  /// The bottom scale factor applied to the sheet at the freeze instant.
   final double bottomScale;
+
+  /// The sheet's render height (in logical pixels) at the freeze instant.
   final double heightAtFreeze;
 
+  /// Creates an immutable frozen state record.
   const FrozenState({
     required this.bottomScale,
     required this.heightAtFreeze,

@@ -14,6 +14,8 @@ import '../../theme/glass_theme_data.dart';
 // in debug mode to emit a helpful error if setup was skipped.
 // Marked as visible for testing — do not use in production code.
 @visibleForTesting
+
+/// Whether the initialization guard is enabled.
 bool glassPageInitializeGuardEnabled = true;
 
 /// Controls how [GlassPage] styles the system status bar.

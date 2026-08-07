@@ -9,6 +9,7 @@ import '../../types/glass_quality.dart';
 import '../../utils/draggable_indicator_physics.dart';
 import '../../utils/glass_spring.dart';
 import '../shared/glass_effect.dart';
+import '../shared/glass_focus_region.dart';
 import '../../theme/glass_theme.dart';
 import '../../theme/glass_theme_helpers.dart';
 
@@ -126,6 +127,8 @@ class GlassSlider extends StatefulWidget {
     this.interactionBehavior = GlassInteractionBehavior.full,
     this.glowColor,
     this.glowRadius = 1.5,
+    this.focusNode,
+    this.autofocus = false,
   });
 
   // ===========================================================================
@@ -241,6 +244,12 @@ class GlassSlider extends StatefulWidget {
   /// Defaults to `1.5` (150% of thumb height), matching [GlassTextField].
   final double glowRadius;
 
+  /// Externally provided focus node.
+  final FocusNode? focusNode;
+
+  /// Whether to request focus immediately.
+  final bool autofocus;
+
   @override
   State<GlassSlider> createState() => _GlassSliderState();
 }
@@ -253,15 +262,16 @@ class _GlassSliderState extends State<GlassSlider>
 
   double? _dragValue;
   bool _isDragging = false;
+  // Scale (squash/stretch) and jelly controller
   late AnimationController _scaleController;
-  late AnimationController _thicknessController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _thicknessAnimation;
+  late SingleSpringController _jellyController;
 
-  // Spring-based jelly velocity controller.
-  // Produces smooth, high-magnitude velocity values with natural deceleration
-  // and elastic bounce-back — matching the tab bar / bottom bar pill feel.
-  late final SingleSpringController _jellyController;
+  final ValueNotifier<bool> _isHovered = ValueNotifier(false);
+  final ValueNotifier<bool> _isFocused = ValueNotifier(false);
+
+  late AnimationController _thicknessController;
+  late Animation<double> _thicknessAnimation;
 
   @override
   void initState() {
@@ -351,8 +361,10 @@ class _GlassSliderState extends State<GlassSlider>
 
     // Calculate normalized position (0-1)
     final trackWidth = constraints.maxWidth - (widget.thumbRadius * 2);
-    final normalizedX =
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final rawNormalizedX =
         ((localPosition.dx - widget.thumbRadius) / trackWidth).clamp(0.0, 1.0);
+    final normalizedX = isRtl ? 1.0 - rawNormalizedX : rawNormalizedX;
 
     // Feed the spring controller with the new normalised position.
     // Its velocity property produces smooth, spring-based values that
@@ -440,9 +452,10 @@ class _GlassSliderState extends State<GlassSlider>
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isRtl = Directionality.of(context) == TextDirection.rtl;
         final trackWidth = constraints.maxWidth - (widget.thumbRadius * 2);
-        final thumbPosition =
-            widget.thumbRadius + (trackWidth * normalizedValue);
+        final thumbPosition = widget.thumbRadius +
+            (trackWidth * (isRtl ? 1.0 - normalizedValue : normalizedValue));
 
         final step = (widget.max - widget.min) / (widget.divisions ?? 10);
         final increasedValue =
@@ -459,21 +472,30 @@ class _GlassSliderState extends State<GlassSlider>
 
         final thumbHeight = widget.thumbRadius * 1.6;
 
-        return Semantics(
-          label: widget.label ?? 'Slider',
-          value: '${(normalizedValue * 100).round()}%',
-          increasedValue: '${(normalizedIncreased * 100).round()}%',
-          decreasedValue: '${(normalizedDecreased * 100).round()}%',
-          onIncrease: widget.onChanged != null
+        return GlassFocusRegion(
+          enabled: widget.onChanged != null,
+          focusNode: widget.focusNode,
+          autofocus: widget.autofocus,
+          semanticLabel: widget.label ?? 'Slider',
+          isSlider: true,
+          semanticValue: '${(normalizedValue * 100).round()}%',
+          semanticIncreasedValue: '${(normalizedIncreased * 100).round()}%',
+          semanticDecreasedValue: '${(normalizedDecreased * 100).round()}%',
+          semanticOnIncrease: widget.onChanged != null
               ? () {
                   widget.onChanged!(increasedValue);
                 }
               : null,
-          onDecrease: widget.onChanged != null
+          semanticOnDecrease: widget.onChanged != null
               ? () {
                   widget.onChanged!(decreasedValue);
                 }
               : null,
+          shape: const StadiumBorder(),
+          isFocusedNotifier: _isFocused,
+          isHoveredNotifier: _isHovered,
+          // Sliders are adjusted with arrow keys, Space/Enter don't activate them natively
+          onKeyboardActivate: null,
           child: RepaintBoundary(
             child: GestureDetector(
               onHorizontalDragDown: _handleDragDown,
@@ -512,23 +534,34 @@ class _GlassSliderState extends State<GlassSlider>
                               // Active track
                               if (normalizedValue > 0)
                                 Positioned(
-                                  left: 0,
-                                  right: constraints.maxWidth *
-                                      (1 - normalizedValue),
+                                  left: isRtl
+                                      ? constraints.maxWidth *
+                                          (1 - normalizedValue)
+                                      : 0,
+                                  right: isRtl
+                                      ? 0
+                                      : constraints.maxWidth *
+                                          (1 - normalizedValue),
                                   top: 0,
                                   bottom: 0,
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: activeColor,
                                       borderRadius: BorderRadius.horizontal(
-                                        left: Radius.circular(
-                                          widget.trackHeight / 2,
-                                        ),
-                                        right: normalizedValue >= 1.0
+                                        left: isRtl
+                                            ? (normalizedValue >= 1.0
+                                                ? Radius.circular(
+                                                    widget.trackHeight / 2)
+                                                : Radius.zero)
+                                            : Radius.circular(
+                                                widget.trackHeight / 2),
+                                        right: isRtl
                                             ? Radius.circular(
-                                                widget.trackHeight / 2,
-                                              )
-                                            : Radius.zero,
+                                                widget.trackHeight / 2)
+                                            : (normalizedValue >= 1.0
+                                                ? Radius.circular(
+                                                    widget.trackHeight / 2)
+                                                : Radius.zero),
                                       ),
                                     ),
                                   ),

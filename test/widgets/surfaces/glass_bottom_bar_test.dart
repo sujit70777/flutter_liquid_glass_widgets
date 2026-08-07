@@ -1595,10 +1595,11 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('AnimatedGlassIndicator.baseIndicatorSettings', () {
-    test('has chromaticAberration 0.15', () {
+    test('has chromaticAberration 0.0 (rainbow rim artifact removed)', () {
+      // chromaticAberration changed from 0.15 → 0.0 to remove rainbow fringing.
       expect(
         AnimatedGlassIndicator.baseIndicatorSettings.chromaticAberration,
-        0.15,
+        0.0,
       );
     });
 
@@ -1614,10 +1615,10 @@ void main() {
     });
 
     testWidgets(
-        'indicatorSettings with only blur overridden preserves 0.15 aberration',
+        'indicatorSettings with only blur overridden preserves 0.0 aberration',
         (tester) async {
       // Verifies the merge gap fix: a caller passing LiquidGlassSettings(blur:2)
-      // should keep chromaticAberration: 0.15 from baseIndicatorSettings.
+      // should keep chromaticAberration: 0.0 from baseIndicatorSettings.
       await tester.pumpWidget(
         createTestApp(
           child: GlassBottomBar(
@@ -1630,7 +1631,7 @@ void main() {
             selectedIndex: 0,
             onTabSelected: (_) {},
             maskingQuality: MaskingQuality.off,
-            // Only blur is changed — chromaticAberration should stay 0.15
+            // Only blur is changed — chromaticAberration should stay 0.0
             indicatorSettings: const LiquidGlassSettings(blur: 2),
           ),
         ),

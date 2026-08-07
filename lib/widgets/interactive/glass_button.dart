@@ -5,6 +5,8 @@ import '../../theme/glass_theme_data.dart';
 import '../../types/glass_quality.dart';
 import '../../types/glass_button_style.dart';
 import '../shared/adaptive_glass.dart';
+import '../shared/glass_accessibility_scope.dart';
+import '../shared/glass_focus_region.dart';
 import '../../theme/glass_theme_helpers.dart';
 import '../surfaces/glass_app_bar.dart';
 
@@ -135,6 +137,8 @@ class GlassButton extends StatefulWidget {
     this.settings,
     this.useOwnLayer = false,
     this.quality,
+    this.focusNode,
+    this.autofocus = false,
     // LiquidStretch properties
     this.interactionScale = 1.05,
     this.stretch = 0.5,
@@ -155,6 +159,8 @@ class GlassButton extends StatefulWidget {
     this.alignment = Alignment.center,
     this.ambientBaseLight = 0.08,
     this.platformViewBackdrop = false,
+    this.canRequestFocus = true,
+    this.excludeFromSemantics = false,
   }) : child = null;
 
   /// Creates a glass button with custom content.
@@ -189,6 +195,8 @@ class GlassButton extends StatefulWidget {
     this.settings,
     this.useOwnLayer = false,
     this.quality,
+    this.focusNode,
+    this.autofocus = false,
     // LiquidStretch properties
     this.interactionScale = 1.05,
     this.stretch = 0.5,
@@ -209,6 +217,8 @@ class GlassButton extends StatefulWidget {
     this.alignment = Alignment.center,
     this.ambientBaseLight = 0.08,
     this.platformViewBackdrop = false,
+    this.canRequestFocus = true,
+    this.excludeFromSemantics = false,
   })  : icon = null,
         iconSize = 24.0,
         iconColor = null;
@@ -414,8 +424,8 @@ class GlassButton extends StatefulWidget {
   /// If null, uses the primary glow color from [GlassTheme].
   ///
   /// Common values:
-  /// - [Colors.white24]: Subtle white glow
-  /// - [Colors.blue.withOpacity(0.3)]: Blue glow
+  /// - `Colors.white24`: Subtle white glow
+  /// - `Colors.blue.withOpacity(0.3)`: Blue glow
   /// - [Colors.transparent]: Disables glow effect
   ///
   /// Defaults to null (uses theme).
@@ -518,6 +528,38 @@ class GlassButton extends StatefulWidget {
   /// the underlying [AdaptiveGlass].
   final bool platformViewBackdrop;
 
+  // ===========================================================================
+  // Focus / Keyboard Properties
+  // ===========================================================================
+
+  /// An optional focus node to use for this button.
+  ///
+  /// Providing a [FocusNode] gives programmatic control over focus:
+  /// - `focusNode.requestFocus()` — focus the button from code.
+  /// - Listen to `focusNode` to react to focus changes.
+  ///
+  /// If null, the button manages its own internal focus node.
+  final FocusNode? focusNode;
+
+  /// Whether this button should be focused automatically when it is inserted
+  /// into the widget tree.
+  ///
+  /// Defaults to false. Set to true for the primary action button in a dialog
+  /// or confirmation sheet so keyboard users can confirm immediately.
+  final bool autofocus;
+
+  /// Whether the button can request focus.
+  ///
+  /// Defaults to true. If false, the button will not be focusable via keyboard
+  /// traversal, but will still be tappable and accessible to screen readers.
+  final bool canRequestFocus;
+
+  /// Whether to exclude this button from the semantics tree.
+  ///
+  /// Useful when the button is used as a purely visual container for other
+  /// interactive widgets (e.g., in [GlassButtonGroup.icons]).
+  final bool excludeFromSemantics;
+
   @override
   State<GlassButton> createState() => _GlassButtonState();
 }
@@ -526,6 +568,8 @@ class _GlassButtonState extends State<GlassButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _saturationController;
   late final Animation<double> _saturationAnimation;
+  final ValueNotifier<bool> _isHovered = ValueNotifier(false);
+  final ValueNotifier<bool> _isFocused = ValueNotifier(false);
 
   @override
   void initState() {
@@ -540,9 +584,31 @@ class _GlassButtonState extends State<GlassButton>
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Keyboard activation — mirrors the touch press animation so sighted
+  // keyboard users receive the same visual feedback as touch users.
+  // Called by ActivateIntent (Space / Enter on focused button).
+  //
+  // Respects GlassAccessibilityData.reduceMotion: when the user has enabled
+  // "Reduce Motion" on their device, the animation pulse is skipped and the
+  // callback fires immediately — matching iOS 26 behaviour.
+  // ---------------------------------------------------------------------------
+  Future<void> _activateFromKeyboard() async {
+    if (!mounted || !widget.enabled) return;
+    final reduceMotion = GlassAccessibilityData.of(context).reduceMotion;
+    if (!reduceMotion) _saturationController.forward();
+    widget.onTap();
+    if (!reduceMotion) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (mounted) _saturationController.reverse();
+    }
+  }
+
   @override
   void dispose() {
     _saturationController.dispose();
+    _isHovered.dispose();
+    _isFocused.dispose();
     super.dispose();
   }
 
@@ -651,33 +717,35 @@ class _GlassButtonState extends State<GlassButton>
     // The ambient base light provides a subtle surface brightness when pressed,
     // matching iOS 26 where active buttons never go completely dark even when
     // the directional glow follows the finger off-edge.
-    final ambientOverlay = widget.ambientBaseLight > 0
-        ? AnimatedBuilder(
-            animation: _saturationAnimation,
-            builder: (context, _) {
-              final opacity =
-                  _saturationAnimation.value * widget.ambientBaseLight;
-              if (opacity <= 0) return const SizedBox.shrink();
-              return Positioned.fill(
-                child: IgnorePointer(
-                  child: ColoredBox(
-                    color: CupertinoColors.white.withValues(alpha: opacity),
-                  ),
-                ),
-              );
-            },
-          )
-        : null;
+    final ambientOverlay = AnimatedBuilder(
+      animation:
+          Listenable.merge([_saturationAnimation, _isHovered, _isFocused]),
+      builder: (context, _) {
+        double opacity = _saturationAnimation.value * widget.ambientBaseLight;
+        if (_isFocused.value) {
+          opacity += 0.15;
+        } else if (_isHovered.value) {
+          opacity += 0.08;
+        }
+        if (opacity <= 0) return const SizedBox.shrink();
+        return Positioned.fill(
+          child: IgnorePointer(
+            child: ColoredBox(
+              color: CupertinoColors.white
+                  .withValues(alpha: opacity.clamp(0.0, 1.0)),
+            ),
+          ),
+        );
+      },
+    );
 
-    final contentWithAmbient = ambientOverlay != null
-        ? Stack(
-            alignment: widget.alignment,
-            children: [
-              contentWidget,
-              ambientOverlay,
-            ],
-          )
-        : contentWidget;
+    final contentWithAmbient = Stack(
+      alignment: widget.alignment,
+      children: [
+        contentWidget,
+        ambientOverlay,
+      ],
+    );
 
     // This part is static relative to the glass saturation pulse
     final glowContent = GlassGlow(
@@ -799,24 +867,38 @@ class _GlassButtonState extends State<GlassButton>
           ? widget.anchorStretchSettings
           : themeInteraction.anchorStretchSettings ??
               widget.anchorStretchSettings,
-      child: Semantics(
-        button: true,
-        label: widget.label.isNotEmpty ? widget.label : null,
-        enabled: widget.enabled,
-        child: glassWidget,
-      ),
+      child: glassWidget,
     );
 
     final stretchWidget =
         skipBoundary ? stretchContent : RepaintBoundary(child: stretchContent);
 
     // Apply opacity when disabled
-    final finalWidget = widget.enabled
+    final innerWidget = widget.enabled
         ? stretchWidget
         : Opacity(
             opacity: 0.5,
             child: stretchWidget,
           );
+
+    // ---------------------------------------------------------------------------
+    // GlassFocusRegion abstracts the focus ring painting and keyboard intent
+    // mapping, while we retain ownership of the state (via isFocusedNotifier)
+    // so we can merge it into our AnimatedBuilder without causing full rebuilds.
+    // ---------------------------------------------------------------------------
+    final focusableWidget = GlassFocusRegion(
+      enabled: widget.enabled,
+      focusNode: widget.focusNode,
+      canRequestFocus: widget.canRequestFocus,
+      autofocus: widget.autofocus,
+      semanticLabel: widget.label.isNotEmpty ? widget.label : null,
+      isButton: !widget.excludeFromSemantics,
+      shape: widget.shape,
+      isFocusedNotifier: _isFocused,
+      isHoveredNotifier: _isHovered,
+      onKeyboardActivate: _activateFromKeyboard,
+      child: innerWidget,
+    );
 
     // ---------------------------------------------------------------------------
     // Interaction wrapper: choose between tap-based and pointer-based press
@@ -840,7 +922,8 @@ class _GlassButtonState extends State<GlassButton>
         child: GestureDetector(
           onTap: widget.enabled ? widget.onTap : null,
           behavior: HitTestBehavior.opaque,
-          child: finalWidget,
+          excludeFromSemantics: widget.excludeFromSemantics,
+          child: focusableWidget,
         ),
       );
     }
@@ -852,7 +935,8 @@ class _GlassButtonState extends State<GlassButton>
       onTapUp: _handleTapUp,
       onTapCancel: _handleTapCancel,
       behavior: HitTestBehavior.opaque,
-      child: finalWidget,
+      excludeFromSemantics: widget.excludeFromSemantics,
+      child: focusableWidget,
     );
   }
 }

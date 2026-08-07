@@ -2,9 +2,9 @@ import 'package:flutter/widgets.dart';
 
 /// Default light-mode glass shadow values, matching iOS 26 elevation.
 ///
-/// Used by [AdaptiveGlass], [TabIndicator], [SearchableTabIndicator],
-/// and [SearchPill]. Centralised here to prevent drift between the
-/// four independent shadow wrappers.
+/// Used by [AdaptiveGlass] and the internal tab indicator and search pill
+/// components. Centralised here to prevent drift between the
+/// independent shadow wrappers.
 ///
 /// These shadows are inverse-clipped so they only appear *outside* the
 /// glass boundary, preventing the glass from blurring its own shadow.
@@ -47,7 +47,7 @@ abstract final class GlassShadow {
   /// - `1.0` → [defaults] (unchanged)
   /// - `2.0` → double opacity and blur
   ///
-  /// Opacity is clamped to [0.0, 1.0]; blur and offset scale linearly.
+  /// Opacity is clamped to `0.0–1.0`; blur and offset scale linearly.
   static List<BoxShadow> scaled(double elevation) {
     if (elevation <= 0) return const [];
     if (elevation == 1.0) return defaults;

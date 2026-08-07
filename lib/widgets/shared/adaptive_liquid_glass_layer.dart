@@ -44,6 +44,7 @@ import 'inherited_liquid_glass.dart';
 /// )
 /// ```
 class AdaptiveLiquidGlassLayer extends StatefulWidget {
+  /// Creates a new [AdaptiveLiquidGlassLayer].
   const AdaptiveLiquidGlassLayer({
     required this.child,
     this.shape = const LiquidRoundedSuperellipse(borderRadius: 0),

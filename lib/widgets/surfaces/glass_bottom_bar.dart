@@ -7,7 +7,7 @@ import '../../src/types/glass_interaction_behavior.dart';
 import '../../types/glass_quality.dart';
 import '../interactive/glass_button.dart';
 import '../shared/adaptive_liquid_glass_layer.dart';
-import 'shared/tab_bar_bottom_layout.dart';
+import '../../src/widgets/surfaces/tab_bar_bottom_layout.dart';
 import 'glass_tab_bar.dart' show GlassTab;
 
 /// A glass morphism bottom navigation bar following Apple's design patterns.
@@ -472,6 +472,8 @@ class GlassBottomBar extends StatelessWidget {
   /// case the indicator automatically tracks at `barBorderRadius − 4` to
   /// maintain concentric nested arcs.
   static const _defaultBarBorderRadius = GlassDefaults.capsuleRadius;
+
+  /// The border radius of the bar.
   final double barBorderRadius;
 
   /// Internal padding of the tab bar.
@@ -992,6 +994,7 @@ typedef GlassBottomBarExtraButton = GlassTabBarExtraButton;
 
 /// Clipper that matches the shape and physics of the jelly indicator.
 class JellyClipper extends CustomClipper<Path> {
+  /// Creates a new [JellyClipper].
   JellyClipper({
     required this.itemCount,
     required this.alignment,
@@ -1002,12 +1005,25 @@ class JellyClipper extends CustomClipper<Path> {
     this.inverse = false,
   });
 
+  /// The number of items.
   final int itemCount;
+
+  /// The alignment of the clipper.
   final Alignment alignment;
+
+  /// The thickness of the jelly effect.
   final double thickness;
+
+  /// The expansion insets.
   final EdgeInsets expansion;
+
+  /// The transform matrix.
   final Matrix4 transform;
+
+  /// The border radius.
   final double borderRadius;
+
+  /// Whether the clipper is inverted.
   final bool inverse;
 
   /// Threshold for clip recalculation optimization.

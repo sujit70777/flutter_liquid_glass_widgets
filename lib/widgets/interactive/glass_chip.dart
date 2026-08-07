@@ -113,6 +113,9 @@ class GlassChip extends StatelessWidget {
     this.glowRadius = 0.8,
     this.anchorStretch = true,
     this.anchorStretchSettings = const AnchorStretchSettings(),
+    this.focusNode,
+    this.autofocus = false,
+    this.semanticLabel,
   }) : deleteIcon = deleteIcon ?? const Icon(CupertinoIcons.xmark_circle_fill);
 
   // ===========================================================================
@@ -121,6 +124,15 @@ class GlassChip extends StatelessWidget {
 
   /// The label text displayed in the chip.
   final String label;
+
+  /// Externally provided focus node.
+  final FocusNode? focusNode;
+
+  /// Whether to request focus immediately.
+  final bool autofocus;
+
+  /// Semantic label for screen readers. Defaults to [label].
+  final String? semanticLabel;
 
   /// Optional leading icon widget.
   final Widget? icon;
@@ -349,6 +361,9 @@ class GlassChip extends StatelessWidget {
           enabled: isInteractive,
           anchorStretch: effectiveAnchorStretch,
           anchorStretchSettings: effectiveAnchorStretchSettings,
+          focusNode: focusNode,
+          autofocus: autofocus,
+          label: semanticLabel ?? label,
           width: double.infinity, // Expand to intrinsic width
           height: double.infinity, // Expand to intrinsic height
           child: contentWithSelection,

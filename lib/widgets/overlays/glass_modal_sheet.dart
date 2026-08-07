@@ -12,7 +12,7 @@ import '../../theme/glass_theme.dart';
 import '../../types/glass_quality.dart';
 import '../shared/adaptive_glass.dart';
 import '../../src/renderer/internal/interaction_notification.dart';
-import 'shared/glass_sheet_defaults.dart';
+import '../../src/widgets/overlays/glass_sheet_defaults.dart';
 import '../../constants/glass_defaults.dart';
 
 part 'shared/glass_modal_sheet_mechanics.dart';
@@ -132,7 +132,11 @@ class GlassModalSheet extends StatefulWidget {
 
   /// Optional state-specific settings that override the base [settings].
   final LiquidGlassSettings? peekSettings;
+
+  /// The settings applied when the sheet is half open.
   final LiquidGlassSettings? halfSettings;
+
+  /// The settings applied when the sheet is fully open.
   final LiquidGlassSettings? fullSettings;
 
   /// Liquid stretch multiplier for over-scroll/drag effects. Default: 0.5.
@@ -226,6 +230,7 @@ class GlassModalSheet extends StatefulWidget {
   /// Custom glass settings for content specifically for the 'full' state.
   final LiquidGlassSettings? fullStateContentSettings;
 
+  /// Creates a new [GlassModalSheet].
   const GlassModalSheet({
     super.key,
     required this.child,

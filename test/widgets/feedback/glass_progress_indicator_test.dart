@@ -464,4 +464,94 @@ void main() {
       expect(find.byType(GlassProgressIndicator), findsOneWidget);
     });
   });
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // semanticLabel overrides
+  // ────────────────────────────────────────────────────────────────────────────
+
+  group('GlassProgressIndicator semanticLabel', () {
+    testWidgets('default label is "Progress" for circular', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AdaptiveLiquidGlassLayer(
+                child: GlassProgressIndicator.circular(value: 0.5),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final nodes = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassProgressIndicator),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        nodes.any((s) => s.properties.label == 'Progress'),
+        isTrue,
+        reason: 'Default label must remain "Progress" for backward compat',
+      );
+    });
+
+    testWidgets('semanticLabel overrides default for linear', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AdaptiveLiquidGlassLayer(
+                child: GlassProgressIndicator.linear(
+                  value: 0.7,
+                  semanticLabel: 'Download progress',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final nodes = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassProgressIndicator),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        nodes.any((s) => s.properties.label == 'Download progress'),
+        isTrue,
+        reason: 'semanticLabel must override the default "Progress" label',
+      );
+    });
+
+    testWidgets('semanticLabel overrides default for circular', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AdaptiveLiquidGlassLayer(
+                child: GlassProgressIndicator.circular(
+                  value: 0.3,
+                  semanticLabel: 'Upload progress',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final nodes = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassProgressIndicator),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        nodes.any((s) => s.properties.label == 'Upload progress'),
+        isTrue,
+        reason: 'semanticLabel must work for circular variant too',
+      );
+    });
+  });
 }

@@ -104,6 +104,9 @@ class GlassIconButton extends StatelessWidget {
     this.anchorStretch = true,
     this.anchorStretchSettings = const AnchorStretchSettings(),
     this.platformViewBackdrop = false,
+    this.focusNode,
+    this.autofocus = false,
+    this.semanticLabel,
   });
 
   // Default icon colors are resolved at build time from CupertinoColors.label
@@ -223,6 +226,17 @@ class GlassIconButton extends StatelessWidget {
   /// the underlying [GlassButton] (and on to its [AdaptiveGlass]).
   final bool platformViewBackdrop;
 
+  /// Externally provided focus node.
+  final FocusNode? focusNode;
+
+  /// Whether to request focus immediately.
+  final bool autofocus;
+
+  /// The semantic label for screen readers.
+  ///
+  /// Critical for icon buttons which otherwise have no textual content.
+  final String? semanticLabel;
+
   @override
   Widget build(BuildContext context) {
     final effectiveIconSize = iconSize ?? (size * 0.5);
@@ -259,6 +273,9 @@ class GlassIconButton extends StatelessWidget {
       anchorStretch: anchorStretch,
       anchorStretchSettings: anchorStretchSettings,
       platformViewBackdrop: platformViewBackdrop,
+      focusNode: focusNode,
+      autofocus: autofocus,
+      label: semanticLabel ?? '',
       child: iconWidget,
     );
   }

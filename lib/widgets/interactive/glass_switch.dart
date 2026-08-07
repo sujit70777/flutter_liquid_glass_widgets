@@ -8,6 +8,8 @@ import '../../constants/glass_defaults.dart';
 import '../../theme/glass_theme.dart';
 import '../../types/glass_quality.dart';
 import '../shared/glass_effect.dart';
+import '../shared/glass_focus_region.dart';
+import '../shared/glass_accessibility_scope.dart';
 import '../../theme/glass_theme_helpers.dart';
 
 /// A glass toggle switch with Apple's signature jump animation.
@@ -79,6 +81,9 @@ class GlassSwitch extends StatefulWidget {
     this.useOwnLayer = false,
     this.quality,
     this.enableHaptics = true,
+    this.focusNode,
+    this.autofocus = false,
+    this.semanticLabel,
   });
 
   // ===========================================================================
@@ -148,6 +153,15 @@ class GlassSwitch extends StatefulWidget {
   /// already manages its own haptic layer.
   final bool enableHaptics;
 
+  /// Externally provided focus node.
+  final FocusNode? focusNode;
+
+  /// Whether to request focus immediately.
+  final bool autofocus;
+
+  /// The semantic label for screen readers.
+  final String? semanticLabel;
+
   @override
   State<GlassSwitch> createState() => _GlassSwitchState();
 }
@@ -182,6 +196,9 @@ class _GlassSwitchState extends State<GlassSwitch>
   // The side of the midpoint the thumb was on at the last _onDragUpdate call.
   // Used to detect a crossing without comparing raw floats.
   bool _dragWasAboveMidpoint = false;
+
+  final ValueNotifier<bool> _isHovered = ValueNotifier(false);
+  final ValueNotifier<bool> _isFocused = ValueNotifier(false);
 
   @override
   void initState() {
@@ -278,6 +295,21 @@ class _GlassSwitchState extends State<GlassSwitch>
           _thicknessController.value = 1.0;
         }
       }
+    }
+  }
+
+  void _activateFromKeyboard() {
+    if (!mounted) return;
+
+    // Toggle the value
+    final newValue = !widget.value;
+
+    // Check reduce motion
+    final reduceMotion = GlassAccessibilityData.of(context).reduceMotion;
+
+    widget.onChanged(newValue);
+    if (widget.enableHaptics && !reduceMotion) {
+      unawaited(HapticFeedback.lightImpact());
     }
   }
 
@@ -463,124 +495,130 @@ class _GlassSwitchState extends State<GlassSwitch>
         (isDark ? const Color(0x33FFFFFF) : const Color(0xFFC5C5C6));
     final activeTrackColor = widget.activeColor ?? CupertinoColors.systemGreen;
 
-    return GestureDetector(
-      // NOTE: We do NOT use onTap here. Having both onTap and onHorizontalDrag*
-      // on the same GestureDetector creates a gesture arena conflict — Flutter
-      // must choose one winner per touch, leading to missed interactions.
-      // Instead, we detect taps manually: onTapDown starts the bloom, onTapUp
-      // fires the toggle if no horizontal drag was confirmed.
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      onHorizontalDragCancel: _onDragCancel,
-      onHorizontalDragStart: _onDragStart,
-      onHorizontalDragUpdate: _onDragUpdate,
-      onHorizontalDragEnd: _onDragEnd,
-      // Performance: RepaintBoundary isolates switch animation from parent
-      child: RepaintBoundary(
-        child: AnimatedBuilder(
-          animation:
-              Listenable.merge([_positionController, _thicknessController]),
-          builder: (context, child) {
-            final position = _positionAnimation.value;
-            final thickness = _thicknessAnimation.value;
-            // Tie squash directly to thickness so it doesn't fluctuate during drag
-            final scale = 1.0 - (thickness * 0.08);
+    return GlassFocusRegion(
+        enabled: true,
+        focusNode: widget.focusNode,
+        autofocus: widget.autofocus,
+        semanticLabel: widget.semanticLabel ?? 'Switch',
+        isButton: true,
+        toggled: widget.value,
+        semanticOnTap: _handleTap,
+        shape: const StadiumBorder(),
+        isFocusedNotifier: _isFocused,
+        isHoveredNotifier: _isHovered,
+        onKeyboardActivate: _activateFromKeyboard,
+        child: GestureDetector(
+          // NOTE: We do NOT use onTap here. Having both onTap and onHorizontalDrag*
+          // on the same GestureDetector creates a gesture arena conflict — Flutter
+          // must choose one winner per touch, leading to missed interactions.
+          // Instead, we detect taps manually: onTapDown starts the bloom, onTapUp
+          // fires the toggle if no horizontal drag was confirmed.
+          onTapDown: _onTapDown,
+          onTapUp: _onTapUp,
+          onTapCancel: _onTapCancel,
+          onHorizontalDragCancel: _onDragCancel,
+          onHorizontalDragStart: _onDragStart,
+          onHorizontalDragUpdate: _onDragUpdate,
+          onHorizontalDragEnd: _onDragEnd,
+          // Performance: RepaintBoundary isolates switch animation from parent
+          child: RepaintBoundary(
+            child: AnimatedBuilder(
+              animation:
+                  Listenable.merge([_positionController, _thicknessController]),
+              builder: (context, child) {
+                final position = _positionAnimation.value;
+                final thickness = _thicknessAnimation.value;
+                // Tie squash directly to thickness so it doesn't fluctuate during drag
+                final scale = 1.0 - (thickness * 0.08);
 
-            // Build the track — plain Container driven entirely by `position`
-            // from the single AnimatedBuilder above. Using AnimatedContainer
-            // here previously caused a 200ms *second* animation to start after
-            // the rebuild, making the track go green late. Now everything is
-            // frame-locked to _positionAnimation.
-            //
-            // Color strategy:
-            //   0.0 = fully inactive (inactiveTrackColor, no glow)
-            //   1.0 = fully active   (activeTrackColor gradient, glow)
-            // We lerp smoothly using `position` as the blend factor.
-            final blendedColor =
-                Color.lerp(inactiveTrackColor, activeTrackColor, position)!;
-            final specularTop =
-                Color.lerp(activeTrackColor, CupertinoColors.white, 0.25)!;
+                // Build the track — plain Container driven entirely by `position`
+                // from the single AnimatedBuilder above. Using AnimatedContainer
+                // here previously caused a 200ms *second* animation to start after
+                // the rebuild, making the track go green late. Now everything is
+                // frame-locked to _positionAnimation.
+                //
+                // Color strategy:
+                //   0.0 = fully inactive (inactiveTrackColor, no glow)
+                //   1.0 = fully active   (activeTrackColor gradient, glow)
+                // We lerp smoothly using `position` as the blend factor.
+                final blendedColor =
+                    Color.lerp(inactiveTrackColor, activeTrackColor, position)!;
+                final specularTop =
+                    Color.lerp(activeTrackColor, CupertinoColors.white, 0.25)!;
 
-            final track = Container(
-              width: trackWidth,
-              height: widget.height,
-              decoration: BoxDecoration(
-                // Gradient blends in as position → 1: starts as a flat lerped
-                // colour, gains the specular highlight progressively.
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color.lerp(blendedColor, specularTop, position)!,
-                    blendedColor,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(widget.height / 2),
-                // Glow fades in smoothly from 0 → max alpha over full travel.
-                // Kept subtle (0.35 max, 6dp blur) to avoid over-illumination.
-                boxShadow: position > 0.01
-                    ? [
-                        BoxShadow(
-                          color: activeTrackColor.withValues(
-                            alpha: 0.35 * position,
-                          ),
-                          blurRadius: 6,
-                          spreadRadius: 0,
-                          offset: const Offset(0, 1),
-                        ),
-                      ]
-                    : null,
-              ),
-            );
+                final track = Container(
+                  width: trackWidth,
+                  height: widget.height,
+                  decoration: BoxDecoration(
+                    // Gradient blends in as position → 1: starts as a flat lerped
+                    // colour, gains the specular highlight progressively.
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.lerp(blendedColor, specularTop, position)!,
+                        blendedColor,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(widget.height / 2),
+                    // Glow fades in smoothly from 0 → max alpha over full travel.
+                    // Kept subtle (0.35 max, 6dp blur) to avoid over-illumination.
+                    boxShadow: position > 0.01
+                        ? [
+                            BoxShadow(
+                              color: activeTrackColor.withValues(
+                                alpha: 0.35 * position,
+                              ),
+                              blurRadius: 6,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 1),
+                            ),
+                          ]
+                        : null,
+                  ),
+                );
 
-            // Growth/Expansion offsets
-            final vExpand = thickness * 10.0;
-            final leadStretch = thickness * 16.0;
+                // Growth/Expansion offsets
+                final vExpand = thickness * 10.0;
+                final leadStretch = thickness * 16.0;
 
-            final thumbOffset = 2.0 + (thumbTravelDistance * position);
+                final thumbOffset = 2.0 + (thumbTravelDistance * position);
 
-            // Anchor logic:
-            // Dragging -> Symmetric stretch (anchor center)
-            // Jumping  -> Directional stretch (anchor left or right based on direction)
-            final double anchorOffset = _isDragging
-                ? (leadStretch / 2.0)
-                : (_isMovingForward ? 0.0 : leadStretch);
+                // Anchor logic:
+                // Dragging -> Symmetric stretch (anchor center)
+                // Jumping  -> Directional stretch (anchor left or right based on direction)
+                final double anchorOffset = _isDragging
+                    ? (leadStretch / 2.0)
+                    : (_isMovingForward ? 0.0 : leadStretch);
 
-            final thumbLeft = thumbOffset - anchorOffset;
+                final thumbLeft = thumbOffset - anchorOffset;
 
-            final thumb = Positioned(
-              left: thumbLeft,
-              top: 2.0 - vExpand,
-              child: Transform.scale(
-                // Combined scale: Squash for jump + slight Grow for the liquid bloom
-                scale: scale * (1.0 + thickness * 0.1),
-                child: _buildThumb(thumbSize, thickness, scale, vExpand,
-                    leadStretch, anchorOffset, effectiveQuality, isDark),
-              ),
-            );
+                final thumb = Positioned(
+                  left: thumbLeft,
+                  top: 2.0 - vExpand,
+                  child: Transform.scale(
+                    // Combined scale: Squash for jump + slight Grow for the liquid bloom
+                    scale: scale * (1.0 + thickness * 0.1),
+                    child: _buildThumb(thumbSize, thickness, scale, vExpand,
+                        leadStretch, anchorOffset, effectiveQuality, isDark),
+                  ),
+                );
 
-            return Semantics(
-              label: 'Switch',
-              toggled: widget.value,
-              enabled: true,
-              onTap: _handleTap,
-              child: SizedBox(
-                width: trackWidth,
-                height: widget.height,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    track,
-                    thumb,
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
+                return SizedBox(
+                  width: trackWidth,
+                  height: widget.height,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      track,
+                      thumb,
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ));
   }
 
   Widget _buildThumb(

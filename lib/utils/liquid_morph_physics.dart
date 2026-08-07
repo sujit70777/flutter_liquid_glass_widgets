@@ -21,11 +21,11 @@ enum MorphPhase {
   idle,
 
   /// The anchor blob is shrinking and Blob B is just beginning to pull away.
-  /// In practice this covers animation values [0.0 – 0.4].
+  /// In practice this covers animation values `0.0 – 0.4`.
   detaching,
 
   /// Blob B is in mid-travel — the teardrop neck is at maximum stretch.
-  /// Animation values [0.4 – 0.8].
+  /// Animation values `0.4 – 0.8`.
   travelling,
 
   /// Blob B is approaching its destination and the neck is retracting.
@@ -42,6 +42,7 @@ enum MorphPhase {
 /// All values are pre-calculated and ready to be applied directly to widget
 /// geometry. Consumers must not re-derive values from the raw animation value.
 class LiquidMorphState {
+  /// Creates a new [LiquidMorphState].
   const LiquidMorphState({
     required this.pathT,
     required this.sizeT,

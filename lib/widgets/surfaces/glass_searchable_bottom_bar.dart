@@ -12,7 +12,7 @@ import 'glass_bottom_bar.dart'
         MaskingQuality;
 import 'shared/glass_search_bar_config.dart';
 import 'shared/tab_bar_searchable_controller.dart';
-import 'shared/tab_bar_searchable_layout.dart';
+import '../../src/widgets/surfaces/tab_bar_searchable_layout.dart';
 import 'glass_tab_bar.dart' show GlassTab;
 
 export 'shared/glass_search_bar_config.dart';
@@ -141,7 +141,7 @@ class GlassSearchableBottomBar extends StatelessWidget {
   /// creating its own. Useful for programmatic open/close of search,
   /// or for unit testing the layout computation independently.
   ///
-  /// The caller owns the controller's lifecycle — [dispose] it when done.
+  /// The caller owns the controller's lifecycle — call [SearchableBottomBarController.dispose] when done.
   final SearchableBottomBarController? controller;
 
   /// Configuration for the morphing search bar behaviour.

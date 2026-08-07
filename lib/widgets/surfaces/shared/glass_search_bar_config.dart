@@ -72,8 +72,8 @@ class GlassSearchBarConfig {
   /// Optional builder for a custom logo/icon shown on the collapsed tab pill
   /// when search is fully active.
   ///
-  /// If omitted, this defaults to displaying the [activeIcon] (or fallback
-  /// [icon]) of the currently selected [GlassBottomBarTab], matching the native
+  /// If omitted, this defaults to displaying the [GlassBottomBarTab.activeIcon] (or fallback
+  /// [GlassBottomBarTab.icon]) of the currently selected [GlassBottomBarTab], matching the native
   /// iOS Apple News behavior.
   final WidgetBuilder? collapsedLogoBuilder;
 

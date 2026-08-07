@@ -1,5 +1,6 @@
 import 'package:flutter_liquid_glass_widgets/widgets/interactive/glass_switch.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
 
@@ -747,6 +748,90 @@ void main() {
       await tester.pumpAndSettle();
       expect(value, isTrue,
           reason: 'Switch must be fully functional after rapid interruption');
+    });
+    group('keyboard focus & accessibility', () {
+      testWidgets('Space key toggles switch when focused', (tester) async {
+        bool value = false;
+        final focusNode = FocusNode();
+
+        await tester.pumpWidget(
+          createTestApp(
+            child: AdaptiveLiquidGlassLayer(
+              settings: defaultTestGlassSettings,
+              child: GlassSwitch(
+                value: value,
+                onChanged: (v) => value = v,
+                focusNode: focusNode,
+              ),
+            ),
+          ),
+        );
+
+        focusNode.requestFocus();
+        await tester.pumpAndSettle();
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.space);
+        await tester.pumpAndSettle();
+
+        expect(value, isTrue);
+      });
+
+      testWidgets('Enter key toggles switch when focused', (tester) async {
+        bool value = false;
+        final focusNode = FocusNode();
+
+        await tester.pumpWidget(
+          createTestApp(
+            child: AdaptiveLiquidGlassLayer(
+              settings: defaultTestGlassSettings,
+              child: GlassSwitch(
+                value: value,
+                onChanged: (v) => value = v,
+                focusNode: focusNode,
+              ),
+            ),
+          ),
+        );
+
+        focusNode.requestFocus();
+        await tester.pumpAndSettle();
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pumpAndSettle();
+
+        expect(value, isTrue);
+      });
+
+      testWidgets('exposes switch semantics', (tester) async {
+        final handle = tester.ensureSemantics();
+        try {
+          await tester.pumpWidget(
+            createTestApp(
+              child: GlassSwitch(
+                value: true,
+                onChanged: (_) {},
+                semanticLabel: 'Test Switch',
+              ),
+            ),
+          );
+
+          expect(
+            tester.getSemantics(find.byType(GlassSwitch)),
+            matchesSemantics(
+              isButton: true,
+              hasEnabledState: true,
+              isEnabled: true,
+              isFocusable: true,
+              hasTapAction: true,
+              hasToggledState: true,
+              isToggled: true,
+              label: 'Test Switch',
+            ),
+          );
+        } finally {
+          handle.dispose();
+        }
+      });
     });
   });
 }

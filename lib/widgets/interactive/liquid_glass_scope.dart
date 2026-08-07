@@ -27,6 +27,7 @@ import 'package:flutter/widgets.dart';
 /// )
 /// ```
 class LiquidGlassScope extends StatefulWidget {
+  /// Creates a new [LiquidGlassScope].
   const LiquidGlassScope({
     required this.child,
     super.key,
@@ -82,6 +83,7 @@ class LiquidGlassScope extends StatefulWidget {
     );
   }
 
+  /// The child widget to display.
   final Widget child;
 
   /// Returns the background key from the nearest ancestor scope.
@@ -141,12 +143,14 @@ class _LiquidGlassScopeState extends State<LiquidGlassScope> {
 /// )
 /// ```
 class GlassBackgroundSource extends StatelessWidget {
+  /// Creates a new [GlassBackgroundSource].
   const GlassBackgroundSource({
     required this.child,
     this.enabled = true,
     super.key,
   });
 
+  /// The child widget to display.
   final Widget child;
 
   /// Whether the background should be captured into a texture.

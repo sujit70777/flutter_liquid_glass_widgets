@@ -25,6 +25,7 @@ import 'adaptive_glass.dart';
 /// On Skia/Web or standard quality, it uses the enhanced GlassEffect
 /// shader with magnification and structural rim effects.
 class GlassEffect extends StatefulWidget {
+  /// Creates a new [GlassEffect].
   const GlassEffect({
     required this.shape,
     required this.settings,
@@ -42,9 +43,16 @@ class GlassEffect extends StatefulWidget {
     super.key,
   });
 
+  /// The child widget to display.
   final Widget child;
+
+  /// The shape of the glass effect.
   final LiquidShape shape;
+
+  /// The settings for the liquid glass effect.
   final LiquidGlassSettings settings;
+
+  /// The render quality of the glass.
   final GlassQuality quality;
 
   /// Defaults to 0.0.
@@ -89,6 +97,7 @@ class GlassEffect extends StatefulWidget {
 
   static ui.Image? _dummyImage;
 
+  /// Pre-warms the shaders for this effect.
   static Future<void> preWarm() async {
     if (_cachedProgram != null || _isPreparing) return;
     _isPreparing = true;

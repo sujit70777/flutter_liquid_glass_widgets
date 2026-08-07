@@ -261,9 +261,9 @@ class GlassAppBar extends StatelessWidget
     final titleWidget = centerTitle
         ? Center(child: title ?? const SizedBox.shrink())
         : Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsetsDirectional.only(start: 8),
               child: title ?? const SizedBox.shrink(),
             ),
           );

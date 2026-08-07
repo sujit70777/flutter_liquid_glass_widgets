@@ -12,7 +12,7 @@ import 'package:flutter/physics.dart';
 
 import '../../surfaces/glass_bottom_bar.dart'
     show GlassExtraButtonPosition, GlassTabPillAnchor;
-import 'tab_bar_layout_utils.dart';
+import '../../../src/widgets/surfaces/tab_bar_layout_utils.dart';
 
 // =============================================================================
 // SearchablePillLayout — immutable layout result
@@ -270,7 +270,7 @@ class SearchableBottomBarController extends ChangeNotifier {
 
   /// Called in the post-frame callback after the first layout pass.
   ///
-  /// Sets [pillsInitialized] and caches [targets] to prime change-detection.
+  /// Sets [pillsInitialized] and caches the layout targets to prime change-detection.
   void initializePills({
     required double tabW,
     required double searchLeft,

@@ -25,13 +25,14 @@ void main() {
     GlassTab(label: 'Profile', icon: Icon(CupertinoIcons.person)),
   ];
 
-  Widget rtlBar({required ValueChanged<int> onTabSelected}) {
+  Widget rtlBar(
+      {required ValueChanged<int> onTabSelected, int selectedIndex = 1}) {
     return createTestApp(
       child: Directionality(
         textDirection: TextDirection.rtl,
         child: GlassTabBar.bottom(
           tabs: tabs,
-          selectedIndex: 1,
+          selectedIndex: selectedIndex,
           onTabSelected: onTabSelected,
           // Avoid the dual-layer jelly clipping path in tests.
           maskingQuality: MaskingQuality.off,

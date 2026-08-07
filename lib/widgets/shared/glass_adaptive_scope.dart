@@ -13,9 +13,13 @@
 //
 // Phase 2 — Warm-up benchmark (first 180 frames ≈ 3 s at 60 fps):
 //   Collects raster durations and computes P75 to estimate the device baseline.
-//   P75 < 20 ms  → start at maxQuality (premium by default)
+//   P75 < 20 ms  → promote to maxQuality (premium by default)
 //   P75 20-28 ms → step to standard
 //   P75 > 28 ms  → step to minimal
+//
+//   All platforms (including Android) seed at maxQuality (premium by default).
+//   If a device genuinely cannot sustain premium performance, Phase 2 will
+//   demote it after the warm-up benchmark concludes.
 //
 // Phase 3 — Runtime hysteresis (ongoing, very low overhead):
 //   Degrades quality when P95 > targetFrameMs × 1.5 for 3 consecutive windows.
@@ -284,7 +288,14 @@ class GlassAdaptiveScopeConfig {
   final GlassQuality maxQuality;
 
   /// The quality to display before the warm-up benchmark completes.
-  /// When null (the default), [maxQuality] is used.
+  /// When null (the default), the scope determines the best safe quality
+  /// (maxQuality on Apple, standard on Android).
+  ///
+  /// **Warning for Android**: Forcing this to [GlassQuality.premium] bypasses
+  /// the conservative seeding. While `LiquidGlassWidgets.initialize()` protects
+  /// against ANRs by pre-compiling the shaders, if you explicitly disable the
+  /// Impeller warm-up (`warmUpImpellerPipeline: false`), forcing premium on
+  /// frame 1 may cause a severe stutter or ANR on GLES-only Android devices.
   final GlassQuality? initialQuality;
 
   /// The raster frame duration target in milliseconds. Defaults to `16` (60 fps).
@@ -458,6 +469,17 @@ class GlassAdaptiveScope extends StatefulWidget {
   ///
   /// Within a single app process, [GlassQualityAdapter._sessionSettledQuality]
   /// also auto-skips Phase 2 on remounts — no extra code required.
+  ///
+  /// If null, the scope will automatically determine the best starting quality:
+  /// - All platforms (including Android) default to [maxQuality] for an immediate
+  ///   premium experience (Best Foot Forward). If a device is too slow, Phase 2
+  ///   will demote it after the warmup.
+  ///
+  /// **Warning for Android**: Forcing this to [GlassQuality.premium] bypasses
+  /// the conservative seeding. While `LiquidGlassWidgets.initialize()` protects
+  /// against ANRs by pre-compiling the shaders, if you explicitly disable the
+  /// Impeller warm-up (`warmUpImpellerPipeline: false`), forcing premium on
+  /// frame 1 may cause a severe stutter or ANR on GLES-only Android devices.
   final GlassQuality? initialQuality;
 
   /// The raster frame duration target in milliseconds.
@@ -538,9 +560,12 @@ class _GlassAdaptiveScopeState extends State<GlassAdaptiveScope>
     super.initState();
     // Seed _effectiveQuality using the same source priority the adapter will
     // use in start(): developer-provided initialQuality beats session cache
-    // beats maxQuality. Doing this before creating and starting the adapter
-    // ensures the very first rendered frame shows the correct quality and
-    // there is no one-frame flash from maxQuality to a cached lower value.
+    // beats a conservative platform default.
+    //
+    // We seed at maxQuality on all platforms (Best Foot Forward).
+    // The previous GLES shader compilation ANR risk is mitigated by the
+    // `toImage()` warmup in LiquidGlassWidgets.initialize(). If a device
+    // genuinely cannot sustain this, Phase 2 will demote it.
     _effectiveQuality = widget.initialQuality ??
         GlassQualityAdapter.sessionSettledQuality ??
         widget.maxQuality;
@@ -548,6 +573,8 @@ class _GlassAdaptiveScopeState extends State<GlassAdaptiveScope>
     WidgetsBinding.instance.addObserver(this);
     _adapter.start();
   }
+
+  /// Returns the safe cold-start quality when no [GlassAdaptiveScope.initialQuality]
 
   @override
   void didUpdateWidget(GlassAdaptiveScope oldWidget) {

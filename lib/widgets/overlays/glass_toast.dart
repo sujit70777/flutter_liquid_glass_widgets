@@ -139,7 +139,7 @@ class GlassToastAction {
 ///
 /// ## Accessibility
 ///
-/// - Uses [Semantics] with [liveRegion: true] for screen reader announcements
+/// - Uses [Semantics] with `liveRegion: true` for screen reader announcements
 /// - Semantic labels for action buttons
 /// - High contrast mode support via theme
 /// - Respects reduce motion preferences for animations

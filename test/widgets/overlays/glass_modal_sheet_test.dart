@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../shared/test_helpers.dart';
@@ -651,6 +652,73 @@ void main() {
       expect(find.text('Minimal Content'), findsOneWidget);
       // Verify drag indicator is NOT there
       expect(find.bySemanticsLabel('Drag handle'), findsNothing);
+    });
+
+    testWidgets('drag indicator Semantics.onTap dismisses the sheet',
+        (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () {
+                  GlassModalSheet.show(
+                    context: context,
+                    builder: (context) => const Text('Sheet Content'),
+                  );
+                },
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sheet Content'), findsOneWidget);
+
+      final handle = find.bySemanticsLabel('Drag handle');
+      expect(handle, findsOneWidget);
+
+      // ignore: deprecated_member_use
+      tester.binding.pipelineOwner.semanticsOwner!.performAction(
+        tester.getSemantics(handle).id,
+        SemanticsAction.tap,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sheet Content'), findsNothing);
+      semantics.dispose();
+    });
+
+    testWidgets('respects custom dragIndicatorColor', (tester) async {
+      const customColor = Color(0xFFFF0000);
+      await tester.pumpWidget(
+        createTestApp(
+          child: Stack(
+            children: [
+              GlassModalSheet(
+                dragIndicatorColor: customColor,
+                child: const SizedBox.expand(),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final containerFinder = find.descendant(
+        of: find.bySemanticsLabel('Drag handle'),
+        matching: find.byType(Container),
+      );
+
+      expect(containerFinder, findsOneWidget);
+      final container = tester.widget<Container>(containerFinder);
+      final decoration = container.decoration as BoxDecoration;
+      expect(decoration.color, customColor);
     });
 
     testWidgets('handles extreme radii correctly', (tester) async {

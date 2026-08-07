@@ -241,9 +241,9 @@ class GlassLargeTitle extends StatefulWidget {
     this.fontSize = 34.0,
     this.fontWeight = FontWeight.w700,
     this.letterSpacing = -0.5,
-    this.padding = const EdgeInsets.fromLTRB(24, 0, 24, 8),
+    this.padding = const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 8),
     this.searchBarPadding =
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 4),
     this.color,
     this.trailing,
     super.key,
@@ -275,13 +275,20 @@ class GlassLargeTitle extends StatefulWidget {
 
   /// Padding around the title row.
   ///
-  /// Defaults to `EdgeInsets.fromLTRB(24, 0, 24, 8)`.
+  /// Accepts any [EdgeInsetsGeometry] — pass [EdgeInsetsDirectional] for
+  /// correct RTL mirroring (e.g. `EdgeInsetsDirectional.only(start: 32)`).
+  ///
+  /// Defaults to `EdgeInsetsDirectional.fromSTEB(24, 0, 24, 8)`, matching
+  /// the iOS 26 large-title insets (start=24, end=24, bottom=8).
   final EdgeInsetsGeometry padding;
 
   /// Padding around the search bar, when [searchBar] is provided.
   ///
-  /// Defaults to `EdgeInsets.symmetric(horizontal: 16, vertical: 4)`,
-  /// which matches iOS 26's search bar insets under a large title.
+  /// Accepts any [EdgeInsetsGeometry] — pass [EdgeInsetsDirectional] for
+  /// correct RTL mirroring.
+  ///
+  /// Defaults to `EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 4)`,
+  /// matching iOS 26's search bar insets under a large title.
   final EdgeInsetsGeometry searchBarPadding;
 
   /// Title text colour. Defaults to [CupertinoColors.label] resolved from
@@ -391,7 +398,7 @@ class _GlassTitleSliverState extends State<GlassLargeTitle> {
     return SliverToBoxAdapter(
       child: Transform.scale(
         scale: stretchScale,
-        alignment: Alignment.bottomLeft,
+        alignment: AlignmentDirectional.bottomStart,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

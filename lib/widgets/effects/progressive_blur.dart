@@ -63,6 +63,7 @@ enum ProgressiveBlurDirection {
 /// Call [preload] once from `main()` (after the binding is initialised) to
 /// pre-compile the shader so the first bar paint already has it.
 class ProgressiveBlur extends StatefulWidget {
+  /// Creates a new [ProgressiveBlur].
   const ProgressiveBlur({
     super.key,
     this.maxSigma = 18,

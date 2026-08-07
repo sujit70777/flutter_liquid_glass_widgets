@@ -112,7 +112,8 @@ class GlassGroupedSection extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     if (header == null) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 6.0),
+      padding:
+          const EdgeInsetsDirectional.only(start: 16.0, end: 16.0, bottom: 6.0),
       child: DefaultTextStyle(
         style: TextStyle(
           color: CupertinoColors.secondaryLabel.resolveFrom(context),
@@ -128,7 +129,8 @@ class GlassGroupedSection extends StatelessWidget {
   Widget _buildFooter(BuildContext context) {
     if (footer == null) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 6.0),
+      padding:
+          const EdgeInsetsDirectional.only(start: 16.0, end: 16.0, top: 6.0),
       child: DefaultTextStyle(
         style: TextStyle(
           color: CupertinoColors.secondaryLabel.resolveFrom(context),

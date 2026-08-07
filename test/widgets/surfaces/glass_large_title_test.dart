@@ -453,4 +453,241 @@ void main() {
       expect(zeroOpacities, isEmpty);
     });
   });
+  // ─────────────────────────────────────────────────────────────────────────
+  // RTL layout — padding / alignment
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('GlassLargeTitle — RTL layout', () {
+    late GlassLargeTitleController controller;
+
+    setUp(() => controller = GlassLargeTitleController());
+    tearDown(() => controller.dispose());
+
+    // Helper: bare Directionality wrapper so no scaffold adds extra Padding.
+    Widget rtlApp(Widget child) => Directionality(
+          textDirection: TextDirection.rtl,
+          child: MediaQuery(
+            data: const MediaQueryData(),
+            child: child,
+          ),
+        );
+
+    Widget ltrApp(Widget child) => Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(),
+            child: child,
+          ),
+        );
+
+    // ── 1. Default padding type ────────────────────────────────────────────
+
+    testWidgets('default padding is EdgeInsetsDirectional (not EdgeInsets)',
+        (tester) async {
+      // Verify at the widget property level — no pump needed.
+      final widget = GlassLargeTitle(text: 'T', controller: controller);
+      expect(
+        widget.padding,
+        isA<EdgeInsetsDirectional>(),
+        reason: 'Default padding must be EdgeInsetsDirectional so it mirrors '
+            'correctly under RTL without callers having to opt in.',
+      );
+    });
+
+    testWidgets('default searchBarPadding is EdgeInsetsDirectional',
+        (tester) async {
+      final widget = GlassLargeTitle(
+        text: 'T',
+        controller: controller,
+        searchBar: const SizedBox(),
+      );
+      expect(
+        widget.searchBarPadding,
+        isA<EdgeInsetsDirectional>(),
+        reason: 'Default searchBarPadding must be EdgeInsetsDirectional.',
+      );
+    });
+
+    // ── 2. Default padding resolves symmetrically ──────────────────────────
+
+    testWidgets('default padding resolves to 24 on both sides in LTR',
+        (tester) async {
+      final widget = GlassLargeTitle(text: 'T', controller: controller);
+      final resolved = widget.padding.resolve(TextDirection.ltr);
+      expect(resolved.left, 24.0);
+      expect(resolved.right, 24.0);
+      expect(resolved.top, 0.0);
+      expect(resolved.bottom, 8.0);
+    });
+
+    testWidgets('default padding resolves to 24 on both sides in RTL',
+        (tester) async {
+      // start=24 → physical right; end=24 → physical left under RTL.
+      // Both sides are 24 so visual result is symmetric — but the directional
+      // contract is correct (start is the logical leading edge).
+      final widget = GlassLargeTitle(text: 'T', controller: controller);
+      final resolved = widget.padding.resolve(TextDirection.rtl);
+      expect(resolved.right, 24.0, reason: 'start(24) → physical right in RTL');
+      expect(resolved.left, 24.0, reason: 'end(24) → physical left in RTL');
+    });
+
+    // ── 3. Custom asymmetric EdgeInsetsDirectional padding ─────────────────
+
+    testWidgets(
+        'EdgeInsetsDirectional.only(start:32) → left=32 in LTR, right=32 in RTL',
+        (tester) async {
+      // This is the key case: a caller who passes an asymmetric directional
+      // padding should get correct physical mirroring.
+      const customPadding = EdgeInsetsDirectional.only(start: 32, end: 8);
+
+      // LTR: start → left, end → right.
+      final ltr = customPadding.resolve(TextDirection.ltr);
+      expect(ltr.left, 32.0, reason: 'start=32 → left in LTR');
+      expect(ltr.right, 8.0, reason: 'end=8 → right in LTR');
+
+      // RTL: start → right (leading), end → left (trailing).
+      final rtl = customPadding.resolve(TextDirection.rtl);
+      expect(rtl.right, 32.0, reason: 'start=32 → right in RTL');
+      expect(rtl.left, 8.0, reason: 'end=8 → left in RTL');
+    });
+
+    testWidgets('custom padding renders correctly in LTR', (tester) async {
+      await tester.pumpWidget(ltrApp(
+        CustomScrollView(
+          controller: controller.scrollController,
+          slivers: [
+            GlassLargeTitle(
+              text: 'نامه‌ها',
+              controller: controller,
+              padding: const EdgeInsetsDirectional.only(
+                  start: 32, end: 8, bottom: 8),
+            ),
+          ],
+        ),
+      ));
+      // Locate the Padding that directly wraps the title Row.
+      final padding = tester.widget<Padding>(
+        find
+            .descendant(
+              of: find.byType(GlassLargeTitle),
+              matching: find.byType(Padding),
+            )
+            .first,
+      );
+      final resolved = padding.padding.resolve(TextDirection.ltr);
+      expect(resolved.left, 32.0);
+      expect(resolved.right, 8.0);
+    });
+
+    testWidgets('custom padding renders correctly in RTL', (tester) async {
+      await tester.pumpWidget(rtlApp(
+        CustomScrollView(
+          controller: controller.scrollController,
+          slivers: [
+            GlassLargeTitle(
+              text: 'نامه‌ها',
+              controller: controller,
+              padding: const EdgeInsetsDirectional.only(
+                  start: 32, end: 8, bottom: 8),
+            ),
+          ],
+        ),
+      ));
+      final padding = tester.widget<Padding>(
+        find
+            .descendant(
+              of: find.byType(GlassLargeTitle),
+              matching: find.byType(Padding),
+            )
+            .first,
+      );
+      final resolved = padding.padding.resolve(TextDirection.rtl);
+      // start=32 is on the leading edge; in RTL that is the physical right.
+      expect(resolved.right, 32.0,
+          reason: 'start=32 should be on physical right in RTL');
+      expect(resolved.left, 8.0,
+          reason: 'end=8 should be on physical left in RTL');
+    });
+
+    // ── 4. searchBarPadding mirrors in RTL ─────────────────────────────────
+
+    testWidgets('custom searchBarPadding mirrors correctly under RTL',
+        (tester) async {
+      await tester.pumpWidget(rtlApp(
+        CustomScrollView(
+          controller: controller.scrollController,
+          slivers: [
+            GlassLargeTitle(
+              text: 'بحث',
+              controller: controller,
+              searchBar: const SizedBox(key: Key('sb')),
+              searchBarPadding: const EdgeInsetsDirectional.only(
+                start: 20,
+                end: 4,
+                top: 4,
+                bottom: 4,
+              ),
+            ),
+          ],
+        ),
+      ));
+      // The searchBar Padding is the one that wraps the key('sb') SizedBox.
+      final searchPadding = tester.widget<Padding>(
+        find.ancestor(
+          of: find.byKey(const Key('sb')),
+          matching: find.byType(Padding),
+        ),
+      );
+      final resolved = searchPadding.padding.resolve(TextDirection.rtl);
+      expect(resolved.right, 20.0, reason: 'start=20 → physical right in RTL');
+      expect(resolved.left, 4.0, reason: 'end=4 → physical left in RTL');
+    });
+
+    // ── 5. Transform.scale alignment ──────────────────────────────────────
+
+    testWidgets('rubber-band scale uses AlignmentDirectional.bottomStart',
+        (tester) async {
+      await tester.pumpWidget(rtlApp(
+        CustomScrollView(
+          controller: controller.scrollController,
+          slivers: [
+            GlassLargeTitle(text: 'Title', controller: controller),
+          ],
+        ),
+      ));
+      final transforms = tester.widgetList<Transform>(find.byType(Transform));
+      final hasBottomStart = transforms
+          .any((t) => t.alignment == AlignmentDirectional.bottomStart);
+      expect(
+        hasBottomStart,
+        isTrue,
+        reason:
+            'GlassLargeTitle must scale from AlignmentDirectional.bottomStart '
+            'so the anchor is on the logical leading edge in both LTR and RTL.',
+      );
+    });
+
+    // ── 6. Backwards compatibility ─────────────────────────────────────────
+
+    testWidgets('physical EdgeInsets passed as padding is still accepted',
+        (tester) async {
+      // EdgeInsets IS an EdgeInsetsGeometry — the API accepts both.
+      // Callers who already pass EdgeInsets.symmetric or EdgeInsets.all will
+      // not get a compile error or runtime crash; they just won't get automatic
+      // RTL mirroring (their choice).
+      await tester.pumpWidget(ltrApp(
+        CustomScrollView(
+          controller: controller.scrollController,
+          slivers: [
+            GlassLargeTitle(
+              text: 'Legacy',
+              controller: controller,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            ),
+          ],
+        ),
+      ));
+      expect(find.text('Legacy'), findsOneWidget);
+    });
+  });
 }

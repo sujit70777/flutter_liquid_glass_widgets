@@ -72,6 +72,7 @@ import '../../utils/accessibility_config.dart' as glass_config;
 /// Obtain with [GlassAccessibilityData.of] or [GlassAccessibilityData.maybeOf].
 @immutable
 class GlassAccessibilityData {
+  /// Creates a new [GlassAccessibilityData].
   const GlassAccessibilityData({
     required this.reduceMotion,
     required this.reduceTransparency,

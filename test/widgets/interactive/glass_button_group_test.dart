@@ -1,3 +1,5 @@
+// ignore: unnecessary_import
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -417,6 +419,59 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(GlassPullDownButton), findsOneWidget);
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Accessibility & Focus
+  // ──────────────────────────────────────────────────────────────────────────
+
+  group('GlassButtonGroup keyboard focus & accessibility', () {
+    testWidgets('icons mode exposes semantics for items', (tester) async {
+      final handle = tester.ensureSemantics();
+      try {
+        await tester.pumpWidget(
+          CupertinoApp(
+            home: Center(
+              child: GlassButtonGroup.icons(
+                items: [
+                  GlassButtonGroupItem(
+                    label: 'Semantics A',
+                    icon: const Icon(CupertinoIcons.bold),
+                    onTap: () {},
+                  ),
+                  GlassButtonGroupItem(
+                    label: 'Semantics B',
+                    icon: const Icon(CupertinoIcons.italic),
+                    onTap: () {},
+                    enabled: false,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        final nodeA = tester.getSemantics(find.bySemanticsLabel('Semantics A'));
+        debugPrint('NODE A: $nodeA');
+        debugDumpFocusTree();
+        // ignore: deprecated_member_use
+        expect(nodeA.hasFlag(SemanticsFlag.isButton), true);
+        // ignore: deprecated_member_use
+        expect(nodeA.hasFlag(SemanticsFlag.isEnabled), true);
+        // ignore: deprecated_member_use
+        expect(nodeA.hasFlag(SemanticsFlag.isFocusable), true);
+
+        final nodeB = tester.getSemantics(find.bySemanticsLabel('Semantics B'));
+        // ignore: deprecated_member_use
+        expect(nodeB.hasFlag(SemanticsFlag.isButton), true);
+        // ignore: deprecated_member_use
+        expect(nodeB.hasFlag(SemanticsFlag.isEnabled), false);
+        // ignore: deprecated_member_use
+        expect(nodeB.hasFlag(SemanticsFlag.isFocusable), false);
+      } finally {
+        handle.dispose();
+      }
     });
   });
 }

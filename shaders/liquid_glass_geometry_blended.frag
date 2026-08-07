@@ -47,23 +47,20 @@ void main() {
 
     // Compute the SDF gradient for surface normal generation.
     //
-    // We use central ±1.0 px finite differences for the normal gradient.
-    // The wider 2px span acts as a spatial low-pass filter, smoothing out
-    // sub-pixel normal variations and giving a uniform rim highlight.
-    // For the squircle (Ln-norm pseudo-SDF), the gradient magnitude varies
-    // ~0.875–1.0 across the corner. We correct for this via sdN normalization
-    // below rather than tightening the tap spacing — tighter taps reduce the
-    // spatial filtering benefit and produce a rougher rim highlight on plain
-    // backgrounds. Hardware dFdx/dFdy uses 2×2 quads; central differences are
-    // per-pixel smooth.
-    float sdPX = sceneSDF(fragCoord + vec2(1.0, 0.0), int(uNumShapes), uBlend);
-    float sdMX = sceneSDF(fragCoord - vec2(1.0, 0.0), int(uNumShapes), uBlend);
-    float sdPY = sceneSDF(fragCoord + vec2(0.0, 1.0), int(uNumShapes), uBlend);
-    float sdMY = sceneSDF(fragCoord - vec2(0.0, 1.0), int(uNumShapes), uBlend);
+    // The tap spacing acts as a spatial low-pass filter. To ensure the normal
+    // is smoothed identically on all devices regardless of pixel density, the
+    // physical tap distance must scale with DPR. Since the baseline tuning was
+    // done on a 3x Retina display with a 1.0px tap, the universal tap step
+    // is (uDpr / 3.0).
+    float stepDist = uDpr / 3.0;
+    float sdPX = sceneSDF(fragCoord + vec2(stepDist, 0.0), int(uNumShapes), uBlend);
+    float sdMX = sceneSDF(fragCoord - vec2(stepDist, 0.0), int(uNumShapes), uBlend);
+    float sdPY = sceneSDF(fragCoord + vec2(0.0, stepDist), int(uNumShapes), uBlend);
+    float sdMY = sceneSDF(fragCoord - vec2(0.0, stepDist), int(uNumShapes), uBlend);
 
-    // Span is 2.0px (±1.0), so multiply by 0.5 for the unit gradient.
-    float dx = (sdPX - sdMX) * 0.5;
-    float dy = (sdPY - sdMY) * 0.5;
+    // Span is 2.0 * stepDist, so divide by it for the unit gradient.
+    float dx = (sdPX - sdMX) / (2.0 * stepDist);
+    float dy = (sdPY - sdMY) / (2.0 * stepDist);
 
     float gradMag = sqrt(dx * dx + dy * dy);
     // Normalize the SDF using the gradient magnitude. This converts a pseudo-SDF
@@ -73,8 +70,12 @@ void main() {
     // Apply logical-pixel anti-aliasing using the NORMALIZED distance (sdN).
     // Using raw `sd` for pseudo-SDFs causes pixelated edges because the field
     // crosses zero too quickly. `sdN` guarantees exact 1-pixel wide gradients.
-    // 1.5 logical pixels of smoothing guarantees a pristine edge that survives
-    // the 4% bilinear scaling of press animations without stair-stepping.
+    // 
+    // Note: The physical radius here scales directly by raw `uDpr`, not by `uDpr / 3.0`.
+    // This is correct because we want a 1.5 logical-pixel wide smoothing radius on all
+    // screens. A 1.5 logical-pixel radius naturally maps to `1.5 * uDpr` physical pixels.
+    // This guarantees a pristine edge that survives the 4% bilinear scaling of press 
+    // animations without stair-stepping, on every device density.
     float smoothing = 1.5 * max(1.0, uDpr);
     float foregroundAlpha = smoothstep(smoothing * 0.5, -smoothing * 0.5, sdN);
     if (foregroundAlpha < 0.01) {

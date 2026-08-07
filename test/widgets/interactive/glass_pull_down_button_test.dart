@@ -112,4 +112,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(GlassPullDownButton), findsOneWidget);
   });
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // semanticLabel
+  // ────────────────────────────────────────────────────────────────────────────
+
+  group('GlassPullDownButton semanticLabel', () {
+    testWidgets('icon-only button uses semanticLabel as accessible name',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AdaptiveLiquidGlassLayer(
+              child: Center(
+                child: GlassPullDownButton(
+                  icon: const Icon(CupertinoIcons.ellipsis_circle),
+                  semanticLabel: 'More options',
+                  items: const [
+                    GlassMenuItem(title: 'Action A', onTap: _noop),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      // The GlassButton inside should carry the semanticLabel as its label
+      final buttons = tester.widgetList<GlassButton>(
+        find.descendant(
+          of: find.byType(GlassPullDownButton),
+          matching: find.byType(GlassButton),
+        ),
+      );
+      expect(
+        buttons.any((b) => b.label == 'More options'),
+        isTrue,
+        reason: 'semanticLabel must be passed through to GlassButton.label',
+      );
+    });
+
+    test('semanticLabel is null by default', () {
+      final btn = GlassPullDownButton(
+        items: const [GlassMenuItem(title: 'Action', onTap: _noop)],
+      );
+      expect(btn.semanticLabel, isNull);
+    });
+  });
 }
+
+void _noop() {}

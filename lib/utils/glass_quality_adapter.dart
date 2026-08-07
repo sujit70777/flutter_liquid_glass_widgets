@@ -24,7 +24,7 @@
 ///   - Degrades one tier when P95 > targetFrameMs × 1.5 for 2 consecutive
 ///     sliding windows
 ///   - Upgrades one tier when P95 < targetFrameMs × 0.6 for 10 consecutive
-///     sliding windows (only if [allowStepUp] is `true`)
+///     sliding windows (only if `allowStepUp` is `true`)
 ///   - Hard cooldown: minimum 8 seconds between any quality change
 ///   - Degradation is 3× faster than recovery — jank is noticed immediately,
 ///     but quality recovery must be invisible (slow and stable)
@@ -32,7 +32,7 @@
 /// **This class is internal — do NOT export from the barrel file.**
 ///
 /// All logic is pure Dart (no widgets, no [BuildContext]). The adapter is
-/// owned and started/stopped by [_GlassAdaptiveScopeState].
+/// owned and started/stopped by the adaptive scope's internal state.
 ///
 /// ```dart
 /// final adapter = GlassQualityAdapter(
@@ -206,7 +206,7 @@ class GlassQualityAdapter {
   /// The currently cached quality for this session, or `null` if Phase 2 has
   /// not yet completed on any adapter instance.
   ///
-  /// Used by [_GlassAdaptiveScopeState] to seed its initial display quality so
+  /// Used by the adaptive scope's internal state to seed its initial display quality so
   /// the first rendered frame matches the adapter's starting point, avoiding a
   /// one-frame flash from [maxQuality] to the cached lower value.
   static GlassQuality? get sessionSettledQuality => _sessionSettledQuality;
@@ -320,7 +320,7 @@ class GlassQualityAdapter {
   /// Always called at the end of Phase 2, regardless of whether quality
   /// changed. Receives the settled quality, P75 (ms), and frame count.
   ///
-  /// Use this in [_GlassAdaptiveScopeState] to emit a diagnostic even on
+  /// Use this in the adaptive scope to emit a diagnostic even on
   /// fast devices that stay at [maxQuality] through warmup — those devices
   /// never fire [_onQualityChanged], so their P75 would otherwise be invisible.
   final void Function(GlassQuality settled, double p75Ms, int frames)?

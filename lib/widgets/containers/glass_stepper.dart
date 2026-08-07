@@ -7,6 +7,7 @@ import '../../src/renderer/liquid_glass_renderer.dart';
 import '../../theme/glass_theme.dart';
 import '../../types/glass_quality.dart';
 import '../shared/adaptive_glass.dart';
+import '../shared/glass_focus_region.dart';
 
 /// A glass-aesthetic numeric stepper matching iOS 26's `UIStepper` control.
 ///
@@ -260,8 +261,11 @@ class _GlassStepperState extends State<GlassStepper> {
                 Expanded(
                   child: _StepperSide(
                     icon: CupertinoIcons.minus,
+                    semanticLabel: 'Decrement',
                     isPressed: _decrementPressed,
                     isEnabled: _canDecrement,
+                    // Single-fire keyboard action — no repeat timer.
+                    onKeyboardActivate: _canDecrement ? _decrement : null,
                     onTapDown: () {
                       setState(() => _decrementPressed = true);
                       _decrement();
@@ -293,8 +297,11 @@ class _GlassStepperState extends State<GlassStepper> {
                 Expanded(
                   child: _StepperSide(
                     icon: CupertinoIcons.plus,
+                    semanticLabel: 'Increment',
                     isPressed: _incrementPressed,
                     isEnabled: _canIncrement,
+                    // Single-fire keyboard action — no repeat timer.
+                    onKeyboardActivate: _canIncrement ? _increment : null,
                     onTapDown: () {
                       setState(() => _incrementPressed = true);
                       _increment();
@@ -323,43 +330,67 @@ class _GlassStepperState extends State<GlassStepper> {
 // Private: one side (− or +)
 // =============================================================================
 
-class _StepperSide extends StatelessWidget {
+class _StepperSide extends StatefulWidget {
   const _StepperSide({
     required this.icon,
+    required this.semanticLabel,
     required this.isPressed,
     required this.isEnabled,
+    required this.onKeyboardActivate,
     required this.onTapDown,
     required this.onTapUp,
     required this.onTapCancel,
   });
 
   final IconData icon;
+  final String semanticLabel;
   final bool isPressed;
   final bool isEnabled;
+
+  /// Single-fire callback for keyboard Space/Enter activation.
+  /// Intentionally does NOT start the repeat timer — that is a pointer-only
+  /// behaviour driven by a sustained press gesture, not a discrete key event.
+  final VoidCallback? onKeyboardActivate;
   final VoidCallback onTapDown;
   final VoidCallback onTapUp;
   final VoidCallback onTapCancel;
 
   @override
+  State<_StepperSide> createState() => _StepperSideState();
+}
+
+class _StepperSideState extends State<_StepperSide> {
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: isEnabled ? (_) => onTapDown() : null,
-      onTapUp: (_) => onTapUp(),
-      onTapCancel: onTapCancel,
-      child: AnimatedScale(
-        scale: (isPressed && isEnabled) ? 0.88 : 1.0,
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        child: Center(
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 150),
-            opacity: isEnabled ? 1.0 : 0.3,
-            child: Icon(
-              icon,
-              color: CupertinoTheme.of(context).textTheme.textStyle.color ??
-                  CupertinoColors.label,
-              size: 20,
+    return GlassFocusRegion(
+      enabled: widget.isEnabled,
+      isButton: true,
+      semanticLabel: widget.semanticLabel,
+      // Circular shape matches the half-pill boundary of each stepper side.
+      shape: const CircleBorder(),
+      // Use the dedicated single-fire callback — NOT onTapDown — so the
+      // repeat timer is never started by a keyboard Space/Enter press.
+      onKeyboardActivate: widget.onKeyboardActivate,
+      semanticOnTap: widget.onKeyboardActivate,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: widget.isEnabled ? (_) => widget.onTapDown() : null,
+        onTapUp: (_) => widget.onTapUp(),
+        onTapCancel: widget.onTapCancel,
+        child: AnimatedScale(
+          scale: (widget.isPressed && widget.isEnabled) ? 0.88 : 1.0,
+          duration: const Duration(milliseconds: 80),
+          curve: Curves.easeOut,
+          child: Center(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 150),
+              opacity: widget.isEnabled ? 1.0 : 0.3,
+              child: Icon(
+                widget.icon,
+                color: CupertinoTheme.of(context).textTheme.textStyle.color ??
+                    CupertinoColors.label,
+                size: 20,
+              ),
             ),
           ),
         ),

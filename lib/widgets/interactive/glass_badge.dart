@@ -30,6 +30,7 @@ enum BadgePosition {
 /// - Auto-hide when count is 0
 /// - Theme-aware colors
 /// - Customizable size and colors
+/// - Overridable semantic label for non-notification domains
 ///
 /// ## Usage
 ///
@@ -54,22 +55,34 @@ enum BadgePosition {
 /// )
 /// ```
 ///
+/// ### Custom Semantic Domain (Downloads, Messages, etc.)
+/// ```dart
+/// // Visual cap at 99+ but VoiceOver announces the true count:
+/// GlassBadge(
+///   count: 2500,          // visual shows "99+"
+///   semanticCount: 2500,  // VoiceOver: "2500 downloads"
+///   semanticLabel: '2500 downloads',
+///   child: Icon(CupertinoIcons.cloud_download),
+/// )
+/// ```
+///
+/// ### True Count for Capped Badges
+/// ```dart
+/// // count drives the visual; semanticCount overrides the spoken number:
+/// GlassBadge(
+///   count: messages.length,
+///   maxCount: 99,
+///   semanticCount: messages.length, // always speaks the real number
+///   child: Icon(CupertinoIcons.bubble_left),
+/// )
+/// ```
+///
 /// ### Custom Position
 /// ```dart
 /// GlassBadge(
 ///   count: 12,
 ///   position: BadgePosition.topLeft,
 ///   child: Icon(Icons.mail),
-/// )
-/// ```
-///
-/// ### Custom Colors
-/// ```dart
-/// GlassBadge(
-///   count: 3,
-///   backgroundColor: Colors.blue,
-///   textColor: CupertinoColors.white,
-///   child: Icon(Icons.message),
 /// )
 /// ```
 ///
@@ -91,6 +104,22 @@ enum BadgePosition {
 /// - **Visibility**: Only shows when count > 0 or explicitly shown
 class GlassBadge extends StatelessWidget {
   /// Creates a badge with a count number.
+  ///
+  /// [semanticLabel] fully replaces the VoiceOver/TalkBack announcement.
+  /// When omitted the default is "$count notifications" (or "$maxCount+
+  /// notifications" when capped).
+  ///
+  /// [semanticCount] overrides only the *number* spoken by the screen reader
+  /// while leaving the visual count unchanged. Useful when the displayed count
+  /// is capped at [maxCount] but accessibility should announce the true value:
+  ///
+  /// ```dart
+  /// GlassBadge(
+  ///   count: items.length,   // visual (may show 99+)
+  ///   semanticCount: items.length, // always speaks the real number
+  ///   child: ...,
+  /// )
+  /// ```
   const GlassBadge({
     required this.child,
     super.key,
@@ -102,6 +131,8 @@ class GlassBadge extends StatelessWidget {
     this.quality,
     this.showZero = false,
     this.maxCount = 99,
+    this.semanticLabel,
+    this.semanticCount,
   })  : isDot = false,
         dotColor = null;
 
@@ -109,11 +140,12 @@ class GlassBadge extends StatelessWidget {
   ///
   /// Use for online/offline status, active state indicators, etc.
   ///
-  /// Example:
+  /// [semanticLabel] overrides the default "Active" VoiceOver announcement:
+  ///
   /// ```dart
   /// GlassBadge.dot(
   ///   color: Colors.green,
-  ///   position: BadgePosition.bottomRight,
+  ///   semanticLabel: 'Online',
   ///   child: Avatar(...),
   /// )
   /// ```
@@ -124,12 +156,14 @@ class GlassBadge extends StatelessWidget {
     this.position = BadgePosition.topRight,
     this.settings,
     this.quality,
+    this.semanticLabel,
   })  : isDot = true,
         count = 0,
         backgroundColor = null,
         textColor = null,
         showZero = false,
-        maxCount = 99;
+        maxCount = 99,
+        semanticCount = null;
 
   /// The widget to display the badge on top of
   final Widget child;
@@ -171,6 +205,34 @@ class GlassBadge extends StatelessWidget {
   /// Defaults to 99.
   final int maxCount;
 
+  /// Fully overrides the VoiceOver / TalkBack announcement for this badge.
+  ///
+  /// When set, this string is used verbatim as the [Semantics.label].
+  /// Leave `null` to use the default:
+  /// - Count badges: "$count notifications" / "$maxCount+ notifications"
+  /// - Dot badges: "Active"
+  ///
+  /// Use this for non-notification domains, e.g.:
+  /// ```dart
+  /// semanticLabel: '${downloads.length} downloads'
+  /// ```
+  final String? semanticLabel;
+
+  /// Overrides the *number* spoken by screen readers while the visual display
+  /// remains capped at [maxCount].
+  ///
+  /// Ignored when [semanticLabel] is provided.
+  ///
+  /// Example — badge shows "99+" visually but VoiceOver says "2500 notifications":
+  /// ```dart
+  /// GlassBadge(
+  ///   count: items.length,
+  ///   semanticCount: items.length,
+  ///   child: ...,
+  /// )
+  /// ```
+  final int? semanticCount;
+
   /// Custom glass settings (overrides theme)
   final LiquidGlassSettings? settings;
 
@@ -185,13 +247,19 @@ class GlassBadge extends StatelessWidget {
     }
 
     // Build the semantic label for the badge overlay.
-    // - Count badges: "5 notifications" (matches iOS badge VoiceOver)
-    // - Dot badges: "Active" (status indicator)
-    final String badgeLabel = isDot
-        ? 'Active'
-        : (count > maxCount
-            ? '$maxCount+ notifications'
-            : '$count notifications');
+    // Priority order:
+    //   1. semanticLabel — full caller-supplied string (any domain, any wording)
+    //   2. semanticCount — caller supplies the true count; domain stays "notifications"
+    //   3. Default: "$count notifications" / "$maxCount+ notifications" / "Active"
+    final String badgeLabel;
+    if (semanticLabel != null) {
+      badgeLabel = semanticLabel!;
+    } else if (isDot) {
+      badgeLabel = 'Active';
+    } else {
+      final int spokenCount = semanticCount ?? count;
+      badgeLabel = '$spokenCount notifications';
+    }
 
     return Semantics(
       label: badgeLabel,

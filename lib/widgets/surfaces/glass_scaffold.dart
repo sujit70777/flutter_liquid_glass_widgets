@@ -188,7 +188,7 @@ class GlassScaffold extends StatelessWidget {
   /// When both [background] and [backgroundColor] are provided, [background]
   /// takes precedence.
   ///
-  /// When neither is set the Scaffold inherits [Theme.scaffoldBackgroundColor]
+  /// When neither is set the Scaffold inherits `Theme.scaffoldBackgroundColor`
   /// as normal — the inner Scaffold is **not** forced transparent.
   final Color? backgroundColor;
 
@@ -263,7 +263,7 @@ class GlassScaffold extends StatelessWidget {
   /// The preferred height of the app bar, used for padding calculations.
   ///
   /// When [appBar] is a [PreferredSizeWidget], this value is overridden by
-  /// [PreferredSizeWidget.preferredSize.height]. Defaults to 44.0.
+  /// [PreferredSizeWidget], this value is overridden by `preferredSize.height`. Defaults to 44.0.
   final double appBarHeight;
 
   /// The height of the bottom bar, used for padding calculations.
@@ -372,8 +372,9 @@ class GlassScaffold extends StatelessWidget {
     final effectiveAppBarHeight = appBar is PreferredSizeWidget
         ? (appBar! as PreferredSizeWidget).preferredSize.height
         : appBarHeight;
-    final effectiveBottomBarHeight =
-        bottomBar != null ? (bottomBarHeight ?? 60.0) : 0.0;
+    final effectiveBottomBarHeight = bottomBar is PreferredSizeWidget
+        ? (bottomBar as PreferredSizeWidget).preferredSize.height
+        : (bottomBar != null ? (bottomBarHeight ?? 60.0) : 0.0);
 
     // Resolve edge fade toggles.
     final doFadeTop = topEdgeFade ?? (edgeFade && appBar != null);

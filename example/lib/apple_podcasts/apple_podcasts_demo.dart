@@ -2,9 +2,11 @@
 ///
 /// Demonstrates the official "accessory shelf" pattern using Liquid Glass widgets,
 /// including a mini-player pill that expands into a full `GlassSheet` Now Playing screen.
+/// This uses the new `bottomAccessory` API in `GlassTabBar` to seamlessly handle
+/// the expanded/inline geometric transitions without manual Stack math.
 ///
 /// Run standalone:
-///   flutter run -t lib/apple_podcasts/apple_podcasts_demo.dart
+///   flutter run -d macos -t lib/apple_podcasts/apple_podcasts_demo.dart
 library;
 
 import 'package:flutter/cupertino.dart';
@@ -316,15 +318,11 @@ class _ApplePodcastsHomeScreenState extends State<ApplePodcastsHomeScreen> {
     final isIOS = defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS;
     final sysBottom = isIOS ? 0.0 : MediaQuery.viewPaddingOf(context).bottom;
-    final bottomOffset = sysBottom;
 
-    const double expandedNavBarH = 40 + 2 * _kPaddingV; // 72.0
-    final double aboveBarBottom = expandedNavBarH + 16.0 + bottomOffset;
-    final double miniBarBottom = _kPaddingV + bottomOffset;
-    final double contentPad = aboveBarBottom + 50.0 + 8.0;
-    const double collapsedPillW = 50.0;
-    final double miniPlayLeft = _kPaddingH + collapsedPillW + 6.0;
-    final double miniPlayRight = _kPaddingH + collapsedPillW + 6.0;
+    // Content bottom padding: bar (64) + vertical padding (16*2) + accessory (50)
+    // + spacing (8) + extra clearance (8).
+    final double contentPad =
+        _kBarH + 2 * _kPaddingV + 50.0 + _kSpacing + 8.0 + sysBottom;
 
     return GlassScaffold(
       background: ColoredBox(color: _kBackground.resolveFrom(context)),
@@ -334,7 +332,6 @@ class _ApplePodcastsHomeScreenState extends State<ApplePodcastsHomeScreen> {
       topEdgeFade: true,
       bottomEdgeFade: true,
       topEdgeFadeExtent: 0, // no app bar — just status bar fade
-      bottomBarHeight: _isMiniMode ? 20 : 40,
       bottomEdgeFadeExtent: 0, // glass bar is transparent
       resizeToAvoidBottomInset: false,
 
@@ -360,49 +357,12 @@ class _ApplePodcastsHomeScreenState extends State<ApplePodcastsHomeScreen> {
         ),
       ),
 
-      // ── Mini-player pill overlay ────────────────────────────────────────────
-      bodyOverlays: [
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 420),
-          curve: Curves.easeInOutCubic,
-          bottom: _isMiniMode ? miniBarBottom : aboveBarBottom,
-          left: _isMiniMode ? miniPlayLeft : _kPaddingH,
-          right: _isMiniMode ? miniPlayRight : _kPaddingH,
-          height: 50.0,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 220),
-            opacity: _isSearching ? 0.0 : 1.0,
-            child: IgnorePointer(
-              ignoring: _isSearching,
-              child: GlassButton.custom(
-                onTap: () => _showNowPlayingSheet(context),
-                quality: GlassQuality.premium,
-                useOwnLayer: true,
-                width: double.infinity,
-                height: 50,
-                shape: const LiquidRoundedRectangle(borderRadius: 25),
-                settings: LiquidGlassSettings(
-                  glassColor:
-                      CupertinoTheme.brightnessOf(context) == Brightness.dark
-                          ? const Color(0xCC1C1C1E)
-                          : const Color(0xCCF2F2F7),
-                  thickness: 30,
-                  blur: 2,
-                  lightIntensity: 0.18,
-                  chromaticAberration: .01,
-                  saturation: 1.2,
-                  fresnelStrength: 0.0,
-                ),
-                child: const _MiniPlayerContent(),
-              ),
-            ),
-          ),
-        ),
-      ],
-
       // ── Bottom navigation bar ──────────────────────────────────────────────
       bottomBar: GlassTabBar.searchable(
         isSearchActive: _isMiniMode || _isSearching,
+        bottomAccessoryPlacement: (_isMiniMode && !_isSearching)
+            ? GlassTabBarAccessoryPlacement.inline
+            : GlassTabBarAccessoryPlacement.expanded,
         selectedIndex: _selectedTab,
         onTabSelected: (index) {
           if (index == _selectedTab && _isMiniMode) {
@@ -419,6 +379,31 @@ class _ApplePodcastsHomeScreenState extends State<ApplePodcastsHomeScreen> {
         horizontalPadding: _kPaddingH,
         verticalPadding: _kPaddingV,
         spacing: _kSpacing,
+        // ── tabViewBottomAccessory (iOS 26) ─────────────────────────────────
+        // Play pill sits above the bar in expanded mode; in mini-mode it
+        // slides inline beside the collapsed search capsule.
+        bottomAccessory: GlassButton.custom(
+          onTap: () => _showNowPlayingSheet(context),
+          quality: GlassQuality.premium,
+          useOwnLayer: true,
+          width: double.infinity,
+          height: 50,
+          shape: const LiquidRoundedRectangle(borderRadius: 25),
+          settings: LiquidGlassSettings(
+            glassColor: CupertinoTheme.brightnessOf(context) == Brightness.dark
+                ? const Color(0xCC1C1C1E)
+                : const Color(0xCCF2F2F7),
+            thickness: 30,
+            blur: 2,
+            lightIntensity: 0.18,
+            chromaticAberration: .01,
+            saturation: 1.2,
+            fresnelStrength: 0.0,
+          ),
+          child: const _MiniPlayerContent(),
+        ),
+        bottomAccessoryHeight: 50.0,
+        bottomAccessoryEnabled: !_searchFieldFocused,
         selectedIconColor: _kPodcastsPurple,
         unselectedIconColor: CupertinoColors.label.resolveFrom(context),
         indicatorColor: CupertinoTheme.brightnessOf(context) == Brightness.dark

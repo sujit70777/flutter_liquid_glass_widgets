@@ -378,10 +378,13 @@ void main() {
   // ── baseIndicatorSettings public constant ────────────────────────────────
 
   group('AnimatedGlassIndicator.baseIndicatorSettings', () {
-    test('chromaticAberration is the iOS 26 iridescent value (0.15)', () {
+    test('chromaticAberration is 0.0 (rainbow rim artifact removed)', () {
+      // chromaticAberration was changed from 0.15 → 0.0 to eliminate the
+      // rainbow rim artefact on the indicator pill. The lens distortion from
+      // glass surface normals is preserved — only colour dispersion is removed.
       expect(
         AnimatedGlassIndicator.baseIndicatorSettings.chromaticAberration,
-        closeTo(0.15, 1e-10),
+        closeTo(0.0, 1e-10),
       );
     });
 

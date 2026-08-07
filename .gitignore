@@ -157,3 +157,9 @@ modal_sheet_showcase/.flutter-plugins
 modal_sheet_showcase/.flutter-plugins-dependencies
 modal_sheet_showcase/pubspec.lock
 docs/SQUIRCLE_GEOMETRY_FINDINGS.md
+tools/build_hero_webp.sh
+
+# Generated API documentation
+doc/
+MANUAL_TEST_CHECKLIST.md
+/ROADMAP.md

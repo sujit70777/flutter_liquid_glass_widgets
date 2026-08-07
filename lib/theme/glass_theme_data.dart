@@ -417,7 +417,7 @@ class GlassThemeData {
   /// Creates glass theme data from a flat set of common properties.
   ///
   /// This is the **recommended constructor for most apps**. It applies the
-  /// same [settings] and [quality] to both light and dark modes using the
+  /// same `settings` and `quality` to both light and dark modes using the
   /// library's built-in light/dark defaults as a base — you only need to
   /// specify what you want to change.
   ///

@@ -4,6 +4,8 @@ import '../../src/renderer/liquid_glass_renderer.dart';
 import '../../theme/glass_theme.dart';
 import '../../types/glass_quality.dart';
 import 'glass_container.dart';
+import '../shared/glass_focus_region.dart';
+import '../shared/glass_interaction_state_mixin.dart';
 
 /// A glass-aesthetic list tile following iOS 26 grouped row design.
 ///
@@ -175,8 +177,10 @@ class GlassListTile extends StatefulWidget {
   State<GlassListTile> createState() => _GlassListTileState();
 }
 
-class _GlassListTileState extends State<GlassListTile> {
-  bool _isPressed = false;
+class _GlassListTileState extends State<GlassListTile>
+    with GlassInteractionStateMixin {
+  // Interaction state (isPressed, isFocused, pressedAndFocused)
+  // is provided by GlassInteractionStateMixin.
 
   @override
   Widget build(BuildContext context) {
@@ -254,25 +258,42 @@ class _GlassListTileState extends State<GlassListTile> {
     Widget tile = Padding(padding: widget.contentPadding, child: row);
 
     if (widget.onTap != null || widget.onLongPress != null) {
-      tile = Semantics(
-        button: true,
-        child: GestureDetector(
-          onTap: widget.onTap,
-          onLongPress: widget.onLongPress,
-          onTapDown: (_) => setState(() => _isPressed = true),
-          onTapUp: (_) => setState(() => _isPressed = false),
-          onTapCancel: () => setState(() => _isPressed = false),
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration:
-                _isPressed ? Duration.zero : const Duration(milliseconds: 150),
-            curve: Curves.easeOutCubic,
-            color: _isPressed
-                ? (GlassTheme.brightnessOf(context) == Brightness.light
-                    ? CupertinoColors.black.withValues(alpha: 0.08)
-                    : CupertinoColors.white.withValues(alpha: 0.08))
-                : const Color(0x00000000),
-            child: tile,
+      tile = GlassFocusRegion(
+        enabled: true,
+        // No shape → background highlight pattern for list rows, not outset ring.
+        isFocusedNotifier: isFocused,
+        semanticLabel: null, // title widget provides its own text semantics
+        isButton: true,
+        onKeyboardActivate: widget.onTap,
+        semanticOnTap: widget.onTap,
+        child: Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: widget.onTap,
+            onLongPress: widget.onLongPress,
+            onTapDown: (_) => isPressed.value = true,
+            onTapUp: (_) => isPressed.value = false,
+            onTapCancel: () => isPressed.value = false,
+            behavior: HitTestBehavior.opaque,
+            child: ListenableBuilder(
+              listenable: pressedAndFocused,
+              builder: (context, child) {
+                final bool showHighlight = isPressed.value || isFocused.value;
+                return AnimatedContainer(
+                  duration: isPressed.value
+                      ? Duration.zero
+                      : const Duration(milliseconds: 150),
+                  curve: Curves.easeOutCubic,
+                  color: showHighlight
+                      ? (GlassTheme.brightnessOf(context) == Brightness.light
+                          ? CupertinoColors.black.withValues(alpha: 0.08)
+                          : CupertinoColors.white.withValues(alpha: 0.08))
+                      : const Color(0x00000000),
+                  child: child,
+                );
+              },
+              child: tile,
+            ),
           ),
         ),
       );

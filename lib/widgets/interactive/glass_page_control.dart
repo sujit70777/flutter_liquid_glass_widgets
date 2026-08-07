@@ -74,6 +74,7 @@ class GlassPageControl extends StatefulWidget {
     this.height = 56,
     this.animationDuration = const Duration(milliseconds: 250),
     this.animationCurve = Curves.easeOutCubic,
+    this.semanticLabel,
   });
 
   // ===========================================================================
@@ -159,6 +160,21 @@ class GlassPageControl extends StatefulWidget {
   ///
   /// Defaults to [Curves.easeOutCubic].
   final Curve animationCurve;
+
+  /// Overrides the VoiceOver / TalkBack announcement for the capsule.
+  ///
+  /// When null the default is `'Page N of M'` (1-indexed, e.g. `'Page 2 of 5'`).
+  ///
+  /// Set this for non-pagination domains:
+  /// ```dart
+  /// GlassPageControl(
+  ///   count: slides.length,
+  ///   currentPage: _current,
+  ///   semanticLabel: 'Slide ${_current + 1} of ${slides.length}',
+  ///   onPageChanged: _goTo,
+  /// )
+  /// ```
+  final String? semanticLabel;
 
   @override
   State<GlassPageControl> createState() => _GlassPageControlState();
@@ -297,7 +313,7 @@ class _GlassPageControlState extends State<GlassPageControl>
 
     // Use GlassButton.custom for the glass capsule — gives us the same
     // press glow + scale interaction as regular buttons, with no drag.
-    return GlassButton.custom(
+    final capsule = GlassButton.custom(
       onTap: () {
         // On tap, advance to next page (cycling)
         if (widget.onPageChanged != null) {
@@ -319,6 +335,18 @@ class _GlassPageControlState extends State<GlassPageControl>
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: dotsContent,
       ),
+    );
+
+    // Wrap in a Semantics node so screen readers announce the current page.
+    // The inner GlassButton has no label (custom child), so this outer node
+    // is the sole announcement source — no double-reading occurs.
+    final effectiveLabel = widget.semanticLabel ??
+        'Page ${widget.currentPage + 1} of ${widget.count}';
+    return Semantics(
+      label: effectiveLabel,
+      button: true,
+      hint: widget.onPageChanged != null ? 'Tap to advance to next page' : null,
+      child: capsule,
     );
   }
 

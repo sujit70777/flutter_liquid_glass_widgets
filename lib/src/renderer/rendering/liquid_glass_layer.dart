@@ -190,8 +190,8 @@ class LiquidGlassLayer extends StatefulWidget {
   final ui.Image? captureImage;
 
   /// The global (screen-space) logical-pixel origin of the [RepaintBoundary]
-  /// that produced [captureImage]. Used to compute [uCaptureOffset] inside
-  /// the shader so [FlutterFragCoord()] fragments are correctly mapped into
+  /// that produced [captureImage]. Used to compute `uCaptureOffset` inside
+  /// the shader so `FlutterFragCoord()` fragments are correctly mapped into
   /// the capture image's coordinate space.
   ///
   /// Ignored when [captureImage] is null.

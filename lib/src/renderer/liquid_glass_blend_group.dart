@@ -248,11 +248,16 @@ class RenderLiquidGlassBlendGroup extends RenderLiquidGlassGeometry
     LiquidGlassSettings settings,
     double devicePixelRatio,
   ) {
+    // The baseline visual thickness was tuned on a 3x Retina display.
+    // To maintain this exact logical thickness on all screens, we multiply by (DPR / 3.0).
+    // This scales the physical rim width so it always occupies the same logical space.
+    final scale = devicePixelRatio / 3.0;
+
     geometryShader.setFloatUniforms(initialIndex: 2, (value) {
       value.setFloats([
         settings.effectiveRefractiveIndex,
         settings.effectiveChromaticAberration,
-        settings.effectiveThickness,
+        settings.effectiveThickness * scale,
         blend * devicePixelRatio,
       ]);
     });

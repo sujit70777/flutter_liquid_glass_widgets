@@ -361,8 +361,8 @@ class GlassDialog extends StatelessWidget {
           final action = entry.value;
           return Expanded(
             child: Padding(
-              padding: EdgeInsets.only(
-                left: index > 0 ? 8 : 0,
+              padding: EdgeInsetsDirectional.only(
+                start: index > 0 ? 8 : 0,
               ),
               child: _buildActionButton(action, context),
             ),

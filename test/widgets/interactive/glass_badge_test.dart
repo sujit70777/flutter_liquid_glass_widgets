@@ -255,30 +255,190 @@ void main() {
   // ──────────────────────────────────────────────────────────────────────────
 
   group('GlassBadge defaults', () {
-    test('count badge defaults', () {
+    test('count badge defaults — semanticLabel and semanticCount are null', () {
       final badge = GlassBadge(
         count: 1,
         child: const Icon(Icons.notifications),
       );
-      expect(badge.count, 1);
-      expect(badge.position, BadgePosition.topRight);
-      expect(badge.showZero, isFalse);
-      expect(badge.maxCount, 99);
-      expect(badge.isDot, isFalse);
-      expect(badge.backgroundColor, isNull);
-      expect(badge.textColor, isNull);
-      expect(badge.quality, isNull);
+      expect(badge.semanticLabel, isNull);
+      expect(badge.semanticCount, isNull);
     });
 
-    test('dot badge defaults', () {
+    test('dot badge defaults — semanticLabel is null', () {
       final badge = GlassBadge.dot(
         child: const Icon(Icons.person),
       );
-      expect(badge.isDot, isTrue);
-      expect(badge.position, BadgePosition.topRight);
-      expect(badge.count, 0);
-      // Colors.green is a MaterialColor — just confirm it's non-null
-      expect(badge.dotColor, isNotNull);
+      expect(badge.semanticLabel, isNull);
+    });
+  });
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // semanticLabel / semanticCount overrides
+  // ────────────────────────────────────────────────────────────────────────────
+
+  group('GlassBadge semanticLabel & semanticCount', () {
+    testWidgets('semanticLabel overrides the default "N notifications" label',
+        (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassBadge(
+            count: 5,
+            semanticLabel: '5 downloads',
+            child: const Icon(Icons.cloud_download),
+          ),
+        ),
+      );
+      await tester.pump();
+      final badges = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassBadge),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        badges.any((s) => s.properties.label == '5 downloads'),
+        isTrue,
+        reason: 'semanticLabel should be used verbatim',
+      );
+    });
+
+    testWidgets(
+        'semanticLabel on a capped badge announces caller string, not "99+ notifications"',
+        (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassBadge(
+            count: 2500,
+            maxCount: 99,
+            semanticLabel: '2500 downloads',
+            child: const Icon(Icons.cloud_download),
+          ),
+        ),
+      );
+      await tester.pump();
+      // Visual shows "99+"
+      expect(find.text('99+'), findsOneWidget);
+      // But semantics should carry the caller-supplied string
+      final badges = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassBadge),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        badges.any((s) => s.properties.label == '2500 downloads'),
+        isTrue,
+        reason: 'semanticLabel must override the capped default label',
+      );
+    });
+
+    testWidgets('semanticCount speaks the true count when badge is capped',
+        (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassBadge(
+            count: 2500,
+            maxCount: 99,
+            semanticCount: 2500,
+            child: const Icon(Icons.notifications),
+          ),
+        ),
+      );
+      await tester.pump();
+      // Visual is still capped at "99+"
+      expect(find.text('99+'), findsOneWidget);
+      // Semantic label should use the true count
+      final badges = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassBadge),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        badges.any((s) => s.properties.label == '2500 notifications'),
+        isTrue,
+        reason: 'semanticCount must override the number spoken by VoiceOver',
+      );
+    });
+
+    testWidgets('semanticLabel takes priority over semanticCount',
+        (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassBadge(
+            count: 10,
+            semanticCount: 10,
+            semanticLabel: '10 messages',
+            child: const Icon(Icons.message),
+          ),
+        ),
+      );
+      await tester.pump();
+      final badges = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassBadge),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        badges.any((s) => s.properties.label == '10 messages'),
+        isTrue,
+        reason: 'semanticLabel has highest priority over semanticCount',
+      );
+    });
+
+    testWidgets('semanticLabel overrides dot badge "Active" default',
+        (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassBadge.dot(
+            semanticLabel: 'Online',
+            child: const Icon(Icons.person),
+          ),
+        ),
+      );
+      await tester.pump();
+      final badges = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassBadge),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        badges.any((s) => s.properties.label == 'Online'),
+        isTrue,
+        reason: 'semanticLabel should override the "Active" dot-badge default',
+      );
+      expect(
+        badges.any((s) => s.properties.label == 'Active'),
+        isFalse,
+        reason: '"Active" must not appear when semanticLabel is set',
+      );
+    });
+
+    testWidgets('backward compat — default label is still "N notifications"',
+        (tester) async {
+      await tester.pumpWidget(
+        createTestApp(
+          child: GlassBadge(
+            count: 7,
+            child: const Icon(Icons.notifications),
+          ),
+        ),
+      );
+      await tester.pump();
+      final badges = tester.widgetList<Semantics>(
+        find.descendant(
+          of: find.byType(GlassBadge),
+          matching: find.byType(Semantics),
+        ),
+      );
+      expect(
+        badges.any((s) => s.properties.label == '7 notifications'),
+        isTrue,
+        reason:
+            'Default label must remain unchanged for backward compatibility',
+      );
     });
   });
 }

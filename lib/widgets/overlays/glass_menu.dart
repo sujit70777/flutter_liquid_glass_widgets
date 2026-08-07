@@ -27,14 +27,32 @@ part 'shared/glass_menu_internal.dart';
 enum GlassMenuAlignment {
   /// Auto-detect alignment based on screen position (default behaviour).
   none,
+
+  /// Top left alignment.
   topLeft,
+
+  /// Top center alignment.
   topCenter,
+
+  /// Top right alignment.
   topRight,
+
+  /// Center left alignment.
   centerLeft,
+
+  /// Center alignment.
   center,
+
+  /// Center right alignment.
   centerRight,
+
+  /// Bottom left alignment.
   bottomLeft,
+
+  /// Bottom center alignment.
   bottomCenter,
+
+  /// Bottom right alignment.
   bottomRight,
 }
 

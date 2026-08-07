@@ -8,6 +8,7 @@ coverage/
 # Local working docs
 docs/
 .agent/
+CHANGELOG_ARCHIVE.md
 
 # Test suite — consumers don't need these; tests are on GitHub
 test/

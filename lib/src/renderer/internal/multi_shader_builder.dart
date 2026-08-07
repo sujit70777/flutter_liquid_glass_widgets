@@ -95,6 +95,19 @@ class MultiShaderBuilder extends StatefulWidget {
       assetKeys.map(precacheShader),
     );
   }
+
+  /// Returns the cached [ui.FragmentProgram] for [assetKey], or `null` if it
+  /// has not been precached yet.
+  ///
+  /// This is an internal accessor used by the pipeline warm-up path in
+  /// [LiquidGlassWidgets.initialize] to reuse already-compiled program objects
+  /// rather than loading them a second time from the asset bundle.
+  ///
+  /// Must only be called after [precacheShaders] has completed for the
+  /// requested [assetKey].
+  // ignore: library_private_types_in_public_api
+  static ui.FragmentProgram? cachedProgram(String assetKey) =>
+      _MultiShaderBuilderState._shaderCache[assetKey];
 }
 
 class _MultiShaderBuilderState extends State<MultiShaderBuilder> {

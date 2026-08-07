@@ -8,6 +8,8 @@ import '../containers/glass_container.dart';
 import '../overlays/glass_menu.dart';
 import 'glass_button.dart';
 import '../../theme/glass_theme_helpers.dart';
+import '../shared/glass_focus_region.dart';
+import '../shared/glass_interaction_state_mixin.dart';
 
 // =============================================================================
 // GlassButtonGroupItem — lightweight data model
@@ -90,7 +92,7 @@ class GlassButtonGroupItem {
 
   /// The icon widget to display.
   ///
-  /// Typically a [CupertinoIcon] or [Icon]. The parent [GlassButtonGroup]
+  /// Typically an [Icon] or [CupertinoIcons] icon widget. The parent [GlassButtonGroup]
   /// wraps this in an [IconTheme] that sets size and color based on the
   /// current brightness.
   final Widget icon;
@@ -306,6 +308,10 @@ class GlassButtonGroup extends StatelessWidget {
           useOwnLayer: useOwnLayer,
           quality: effectiveQuality,
           platformViewBackdrop: platformViewBackdrop,
+          canRequestFocus:
+              false, // The outer pill doesn't take focus, individual items do.
+          excludeFromSemantics:
+              true, // Hide the outer pill from semantics so inner items don't merge into it
           width: null, // Size to content
           height: null, // Size to content
           // Reduce stretch for grouped buttons — full stretch looks too dramatic
@@ -436,7 +442,7 @@ class GlassButtonGroup extends StatelessWidget {
 /// The parent [GlassButton.custom] provides all visual press feedback
 /// (stretch, glow, saturation). This widget only handles individual tap
 /// routing and accessibility semantics.
-class _GlassGroupItemWidget extends StatelessWidget {
+class _GlassGroupItemWidget extends StatefulWidget {
   const _GlassGroupItemWidget({
     required this.item,
     required this.iconColor,
@@ -457,24 +463,58 @@ class _GlassGroupItemWidget extends StatelessWidget {
   final VoidCallback? onTapOverride;
 
   @override
+  State<_GlassGroupItemWidget> createState() => _GlassGroupItemWidgetState();
+}
+
+class _GlassGroupItemWidgetState extends State<_GlassGroupItemWidget>
+    with GlassInteractionStateMixin {
+  // isHovered is provided by GlassInteractionStateMixin.
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: item.enabled ? (onTapOverride ?? item.onTap) : null,
-      behavior: HitTestBehavior.opaque,
-      child: Semantics(
-        button: true,
-        label: item.label,
-        enabled: item.enabled,
-        child: Opacity(
-          opacity: item.enabled ? 1.0 : 0.5,
+    return GlassFocusRegion(
+      enabled: widget.item.enabled,
+      isButton: true,
+      semanticLabel: widget.item.label,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      isHoveredNotifier: isHovered,
+      onKeyboardActivate: widget.item.enabled
+          ? (widget.onTapOverride ?? widget.item.onTap)
+          : null,
+      semanticOnTap: widget.item.enabled
+          ? (widget.onTapOverride ?? widget.item.onTap)
+          : null,
+      child: GestureDetector(
+        onTap: widget.item.enabled
+            ? (widget.onTapOverride ?? widget.item.onTap)
+            : null,
+        behavior: HitTestBehavior.opaque,
+        child: ValueListenableBuilder<bool>(
+          valueListenable: isHovered,
+          builder: (context, isHov, child) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOutCubic,
+              // 10% white overlay on hover — matches GlassMenuItem's hover
+              // response exactly, giving consistent feedback across all
+              // "item inside a container" widgets.
+              color: (isHov && widget.item.enabled)
+                  ? const Color(0x1AFFFFFF)
+                  : const Color(0x00000000),
+              child: Opacity(
+                opacity: widget.item.enabled ? 1.0 : 0.5,
+                child: child,
+              ),
+            );
+          },
           child: Padding(
-            padding: padding,
+            padding: widget.padding,
             child: IconTheme(
               data: IconThemeData(
-                color: iconColor,
-                size: iconSize,
+                color: widget.iconColor,
+                size: widget.iconSize,
               ),
-              child: item.icon,
+              child: widget.item.icon,
             ),
           ),
         ),

@@ -8,7 +8,7 @@ import '../../theme/glass_theme_helpers.dart';
 import '../../theme/glass_theme.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
-import 'shared/glass_sheet_defaults.dart';
+import '../../src/widgets/overlays/glass_sheet_defaults.dart';
 import '../../constants/glass_defaults.dart';
 
 /// A glass morphism bottom sheet following Apple's iOS 26 design patterns.
@@ -255,7 +255,7 @@ class GlassSheet extends StatefulWidget {
   /// - [showDragIndicator]: Whether to show the drag indicator (default: true)
   /// - [dragIndicatorColor]: Color of the drag indicator
   /// - [padding]: Padding around the content
-  /// - [borderRadius]: Corner radius of the sheet (default: 54)
+  /// - [topBorderRadius]: Corner radius of the sheet (default: 54)
   /// - [margin]: External margin for the "floating" look (default: 8x8)
   /// - [isScrollable]: Whether the content should be scrollable (default: true)
   /// - [interactionScale]: Visual scale feedback on touch (default: 1.01)
@@ -547,6 +547,7 @@ class _GlassSheetState extends State<GlassSheet> with TickerProviderStateMixin {
               _SheetHeader(
                 showIndicator: widget.showDragIndicator,
                 color: widget.dragIndicatorColor,
+                onDismiss: () => Navigator.maybePop(context),
               ),
               if (widget.isScrollable)
                 Flexible(
@@ -639,10 +640,12 @@ class _GlassSheetState extends State<GlassSheet> with TickerProviderStateMixin {
 class _SheetHeader extends StatelessWidget {
   final bool showIndicator;
   final Color? color;
+  final VoidCallback? onDismiss;
 
   const _SheetHeader({
     required this.showIndicator,
     this.color,
+    this.onDismiss,
   });
 
   @override
@@ -652,7 +655,8 @@ class _SheetHeader extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 8),
-          Center(child: _GlassDragIndicator(color: color)),
+          Center(
+              child: _GlassDragIndicator(color: color, onDismiss: onDismiss)),
           const SizedBox(height: 8),
         ],
       );
@@ -669,9 +673,11 @@ class _SheetHeader extends StatelessWidget {
 class _GlassDragIndicator extends StatelessWidget {
   const _GlassDragIndicator({
     this.color,
+    this.onDismiss,
   });
 
   final Color? color;
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -685,6 +691,7 @@ class _GlassDragIndicator extends StatelessWidget {
       // and hold, then drag up or down." We approximate this.
       label: 'Drag handle',
       hint: 'Swipe down to dismiss',
+      onTap: onDismiss ?? () => Navigator.maybePop(context),
       child: Container(
         width: 36,
         height: 4, // iOS 26 spec: 4dp (not 5dp)

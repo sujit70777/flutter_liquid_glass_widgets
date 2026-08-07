@@ -58,7 +58,10 @@ void main() {
         ),
       );
       final padding = tester.widget<Padding>(find.byType(Padding).first);
-      final edgeInsets = padding.padding as EdgeInsets;
+      // GlassDivider uses EdgeInsetsDirectional for RTL correctness.
+      // Resolve against LTR (the default test direction) to verify
+      // that start→left and end→right map correctly.
+      final edgeInsets = padding.padding.resolve(TextDirection.ltr);
       expect(edgeInsets.left, 16);
       expect(edgeInsets.right, 8);
     });

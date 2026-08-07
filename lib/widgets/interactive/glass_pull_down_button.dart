@@ -17,6 +17,7 @@ class GlassPullDownButton extends StatelessWidget {
     required this.items,
     Widget? icon,
     this.label,
+    this.semanticLabel,
     super.key,
     this.buttonWidth = 44,
     this.buttonHeight = 44,
@@ -37,6 +38,22 @@ class GlassPullDownButton extends StatelessWidget {
 
   /// Optional label to display next to the icon.
   final String? label;
+
+  /// VoiceOver / TalkBack label for icon-only variants.
+  ///
+  /// Ignored when [label] is non-null (the visible text already serves as the
+  /// accessibility label). When the button shows only an icon and [label] is
+  /// null, the default announcement is an empty string — use [semanticLabel]
+  /// to give it a meaningful name:
+  ///
+  /// ```dart
+  /// GlassPullDownButton(
+  ///   icon: Icon(CupertinoIcons.ellipsis_circle),
+  ///   semanticLabel: 'More options',
+  ///   items: [...],
+  /// )
+  /// ```
+  final String? semanticLabel;
 
   /// The list of items to display in the menu.
   ///
@@ -118,7 +135,7 @@ class GlassPullDownButton extends StatelessWidget {
         return GlassButton(
           onTap: toggleMenu,
           icon: icon,
-          label: label ?? '',
+          label: semanticLabel ?? label ?? '',
           width: buttonWidth,
           height: buttonHeight,
           shape: buttonShape ?? const LiquidOval(),

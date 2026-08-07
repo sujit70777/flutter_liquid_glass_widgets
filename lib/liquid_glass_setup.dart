@@ -6,9 +6,11 @@ import 'theme/glass_theme.dart';
 import 'theme/glass_theme_data.dart';
 import 'types/glass_quality.dart';
 import 'utils/accessibility_config.dart' as glass_config;
+import 'utils/glass_brightness.dart' show glassExternalBrightnessResolver;
 import 'utils/glass_performance_monitor.dart';
 import 'src/renderer/liquid_glass_renderer.dart';
 import 'src/renderer/shaders.dart';
+
 import 'src/renderer/internal/multi_shader_builder.dart';
 import 'widgets/shared/glass_adaptive_scope.dart';
 import 'widgets/shared/glass_effect.dart';
@@ -113,18 +115,16 @@ class LiquidGlassWidgets {
   /// | `progressive_blur.frag` | Graduated backdrop blur ([ProgressiveBlur]) |
   static Future<void> initialize({
     bool enablePerformanceMonitor = true,
+    bool warmUpImpellerPipeline = true,
   }) async {
     debugPrint('[LiquidGlass] Initializing library...');
 
     // 1. Pre-warm shader programs in parallel — prevents first-frame jank /
     //    "white flash" when glass widgets first appear.
     //
-    //    Only shader disk-loads are awaited here (the only work that MUST
-    //    complete before runApp, since a missing program causes a white flash).
-    //
-    //    The Impeller pipeline warm-up is scheduled post-first-frame instead —
-    //    the splash screen or first non-glass frame provides enough GPU idle
-    //    time for pipeline compilation without blocking runApp.
+    //    Shader asset disk-loads are always performed (fast, I/O only, safe on
+    //    all platforms). The GPU warm-up step is conditionally skipped via
+    //    [warmUpImpellerPipeline].
     await Future.wait([
       LightweightLiquidGlass.preWarm(),
       GlassEffect.preWarm(),
@@ -138,11 +138,22 @@ class LiquidGlassWidgets {
       ProgressiveBlur.preload(),
     ]);
 
-    // 2. Schedule Impeller pipeline warm-up after the first frame — zero
-    //    startup cost. The first non-glass frame (e.g. splash screen) provides
-    //    ample idle GPU time for the driver to compile the Vulkan pipeline.
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _warmUpImpellerPipeline());
+    // 2. GPU pipeline warm-up — Android only, sequential after step 1.
+    //
+    //    Must run after precacheShaders so the cached FragmentProgram objects
+    //    are available for the toImage() draw call.
+    //
+    //    On Android GLES, glCompileShader + glLinkProgram is synchronous on the
+    //    raster thread (100–800 ms on mid-range SoCs). Running this before
+    //    runApp ensures compilation completes behind the native splash screen,
+    //    eliminating the nativeSurfaceChanged race condition that causes ANRs
+    //    (see GitHub issue #187).
+    //
+    //    iOS / macOS use precompiled Metal shaders (zero runtime compilation
+    //    cost) and skip this step entirely.
+    if (warmUpImpellerPipeline) {
+      await _warmUpImpellerPipeline();
+    }
 
     // 3. Register the debug performance monitor (no-op in release builds).
     if (enablePerformanceMonitor && !kReleaseMode) {
@@ -240,9 +251,33 @@ class LiquidGlassWidgets {
     bool respectSystemAccessibility = true,
     bool adaptiveQuality = false,
     GlassAdaptiveScopeConfig? adaptiveConfig,
+
+    /// Optional brightness resolver for MaterialApp integration.
+    ///
+    /// When using `MaterialApp`, pass `Theme.maybeBrightnessOf` here so glass
+    /// widgets correctly honour `ThemeMode.light` / `.dark` / `.system` even
+    /// when the device OS and the app theme disagree:
+    ///
+    /// ```dart
+    /// runApp(LiquidGlassWidgets.wrap(
+    ///   child: const MyApp(),
+    ///   brightnessResolver: Theme.maybeBrightnessOf,
+    /// ));
+    /// ```
+    ///
+    /// This package has zero `flutter/material.dart` imports (required for the
+    /// `cupertino_ui` split). The callback pattern lets you bridge Material's
+    /// `ThemeMode` into the glass brightness cascade without coupling the
+    /// package to Material. `CupertinoApp` users can omit this parameter.
+    Brightness? Function(BuildContext)? brightnessResolver,
   }) {
     // Apply global accessibility preference.
     glass_config.respectSystemAccessibility = respectSystemAccessibility;
+
+    // Register the optional Material brightness resolver.
+    // This lets MaterialApp users pass Theme.maybeBrightnessOf without this
+    // package needing to import flutter/material.dart.
+    glassExternalBrightnessResolver = brightnessResolver;
 
     Widget result = child;
 
@@ -279,41 +314,108 @@ class LiquidGlassWidgets {
 
   // ── Private helpers ────────────────────────────────────────────────────────
 
-  /// Warms up the Impeller rendering pipeline for glass effects.
+  /// Performs a true asynchronous GPU pipeline warm-up for Android.
   ///
-  /// Instantiates a minimal [LiquidGlassLayer] to trigger Impeller pipeline
-  /// compilation — eliminating first-frame jank when glass effects appear.
-  /// Skipped on Skia / Web where Impeller is not active.
+  /// ## Why Android only?
   ///
-  /// Called via [addPostFrameCallback] from [initialize], so it runs after
-  /// the first frame rather than blocking [runApp]. The first non-glass frame
-  /// (splash screen, loading state) provides natural GPU idle time for driver
-  /// pipeline compilation without any artificial delay.
-  static void _warmUpImpellerPipeline() {
-    if (!ui.ImageFilter.isShaderFilterSupported) {
-      debugPrint('[LiquidGlass] Skipping Impeller warm-up (Skia/Web detected)');
+  /// iOS and macOS use Impeller with Metal, whose shaders are precompiled at
+  /// build time into a `.metallib` archive. There is no runtime compilation
+  /// step, so no warm-up is needed and this method returns immediately on
+  /// those platforms.
+  ///
+  /// On Android, Impeller may use:
+  /// - **Vulkan** — PSO creation from precompiled SPIR-V is fast (~1–2 ms).
+  /// - **GLES fallback** — `glCompileShader` + `glLinkProgram` compiles GLSL
+  ///   source text at runtime on the raster thread (100–800 ms on mid-range
+  ///   SoCs). If this occurs during the first UI frame it races with Android's
+  ///   `FlutterJNI.nativeSurfaceChanged`, potentially triggering an ANR
+  ///   ("Input dispatching timed out"; see GitHub issue #187).
+  ///
+  /// ## Mechanism
+  ///
+  /// Draws both premium glass shaders to a 1×1 off-screen surface and awaits
+  /// `Picture.toImage()`. This submits a rasterization job to the Flutter
+  /// raster thread, which forces Impeller to compile and link the shader
+  /// programs before the first real UI frame is requested.
+  ///
+  /// Because [initialize] is `await`ed in `main()` before `runApp`, this
+  /// compilation happens entirely behind the native splash screen — the ANR
+  /// window cannot open.
+  ///
+  /// ## Pipeline coverage note
+  ///
+  /// The warm-up draw call uses a simple `drawRect`, which may produce a
+  /// slightly different Impeller pipeline descriptor than the full
+  /// [LiquidGlassLayer] rendering path (different vertex attributes, blend
+  /// state). On GLES, however, once `glCompileShader` has executed for a
+  /// fragment shader, any subsequent `glLinkProgram` for a different
+  /// vertex/blend combination is significantly cheaper (~20–50 ms), well
+  /// within Android's 5-second ANR threshold.
+  ///
+  /// Called by [initialize] only when [warmUpImpellerPipeline] is `true`.
+  static Future<void> _warmUpImpellerPipeline() async {
+    // iOS / macOS: Metal uses precompiled shaders — zero runtime cost.
+    // Web / Skia: Impeller is not active — isShaderFilterSupported == false.
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+
+    // Retrieve the FragmentProgram objects already cached by step 1 of
+    // initialize(). Reusing cached instances avoids creating duplicate GPU
+    // objects. If either program is missing (precacheShaders failed),
+    // we skip silently — the app will still run, with possible first-frame
+    // stutter on GLES.
+    final blendedGeometry =
+        MultiShaderBuilder.cachedProgram(ShaderKeys.blendedGeometry);
+    final finalRender =
+        MultiShaderBuilder.cachedProgram(ShaderKeys.liquidGlassRender);
+
+    if (blendedGeometry == null || finalRender == null) {
+      debugPrint(
+        '[LiquidGlass] Skipping GPU warm-up: shader programs not in cache '
+        '(precacheShaders may have failed).',
+      );
       return;
     }
 
     try {
-      const warmUpSettings = LiquidGlassSettings(
-        blur: 3,
-        thickness: 30,
-        refractiveIndex: 1.5,
-      );
+      // Create a 1x1 dummy image to satisfy the fragment shader samplers.
+      // If we don't bind samplers, Impeller throws "missing sampler".
+      final dummyRecorder = ui.PictureRecorder();
+      final dummyCanvas = ui.Canvas(dummyRecorder);
+      dummyCanvas.drawColor(const ui.Color(0x00000000), ui.BlendMode.clear);
+      final dummyImage = await dummyRecorder.endRecording().toImage(1, 1);
 
-      // Instantiating the layer registers the shader programs with the
-      // Impeller engine and kicks off async driver pipeline compilation.
-      // No artificial delay needed — the post-frame scheduling ensures the
-      // engine is in a stable state to accept the compilation work.
-      final _ = LiquidGlassLayer(
-        settings: warmUpSettings,
-        child: const SizedBox.shrink(),
-      );
+      // Draw both shaders to a 1×1 surface. On GLES this forces
+      // glCompileShader + glLinkProgram on the raster thread.
+      // On Vulkan this completes in ~1–2 ms.
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(recorder);
 
-      debugPrint('[LiquidGlass] ✓ Impeller pipeline warm-up scheduled');
+      for (final program in [blendedGeometry, finalRender]) {
+        final shader = program.fragmentShader();
+
+        if (program == finalRender) {
+          shader.setImageSampler(0, dummyImage);
+          shader.setImageSampler(1, dummyImage);
+        }
+
+        canvas.drawRect(
+          const ui.Rect.fromLTWH(0, 0, 1, 1),
+          ui.Paint()..shader = shader,
+        );
+        shader.dispose();
+      }
+
+      final image = await recorder.endRecording().toImage(1, 1);
+
+      dummyImage.dispose();
+      image.dispose();
+
+      debugPrint('[LiquidGlass] ✓ Android GPU pipeline warm-up complete.');
     } catch (e) {
-      debugPrint('[LiquidGlass] Impeller warm-up failed (non-critical): $e');
+      // Non-fatal: log and continue. The app will launch normally; the first
+      // glass frame may stutter on GLES but will not crash.
+      debugPrint('[LiquidGlass] GPU warm-up failed (non-critical): $e');
     }
   }
 }

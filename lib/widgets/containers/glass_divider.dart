@@ -137,7 +137,7 @@ class GlassDivider extends StatelessWidget {
 
     return ExcludeSemantics(
       child: Padding(
-        padding: EdgeInsets.only(left: indent, right: endIndent),
+        padding: EdgeInsetsDirectional.only(start: indent, end: endIndent),
         // Replaces Material Divider — identical pixel output.
         child: SizedBox(
           height: effectiveHeight,

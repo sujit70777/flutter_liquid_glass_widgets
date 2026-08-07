@@ -195,26 +195,27 @@ class _App extends StatelessWidget {
         data: ThemeData.dark(useMaterial3: true),
         child: child!,
       ),
-      home: const _ComparisonPage(),
+      home: const GlassQualityComparisonDemo(),
     );
   }
 }
 
 // ── Demo page ─────────────────────────────────────────────────────────────────
 
-class _ComparisonPage extends StatefulWidget {
-  const _ComparisonPage();
+class GlassQualityComparisonDemo extends StatefulWidget {
+  const GlassQualityComparisonDemo({super.key});
 
   @override
-  State<_ComparisonPage> createState() => _ComparisonPageState();
+  State<GlassQualityComparisonDemo> createState() =>
+      GlassQualityComparisonDemoState();
 }
 
-class _ComparisonPageState extends State<_ComparisonPage> {
+class GlassQualityComparisonDemoState
+    extends State<GlassQualityComparisonDemo> {
   int _segIndex = 0;
   int _tabIndex = 0;
   bool _switchValue = false;
   double _sliderValue = 0.4;
-  bool _backgroundSampling = true;
 
   // ── Live tuning panel ──────────────────────────────────────────────────
   bool _showTuning = false;
@@ -260,67 +261,67 @@ class _ComparisonPageState extends State<_ComparisonPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GlassPage(
-      enableBackgroundSampling: _backgroundSampling,
-      background: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background — mountain landscape gives good glass contrast
-          Image.asset(
-            'assets/mountain_landscape.jpg',
-            fit: BoxFit.cover,
-          ),
-          // Subtle dark veil for readability
-          Container(color: CupertinoColors.black.withValues(alpha: 0.28)),
-        ],
-      ),
-      child: GlassScaffold(
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildHeader(),
-              if (_showTuning)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  child: SizedBox(
-                    height:
-                        280, // Safe bounded height to prevent visual overflow
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.black.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Plain background — renders as a normal Flutter layer so both
+        // standard BackdropFilter and premium Impeller shader can sample it.
+        Image.asset('assets/mountain_landscape.jpg', fit: BoxFit.cover),
+        Container(color: CupertinoColors.black.withValues(alpha: 0.28)),
+
+        // GlassPage with no background param — wraps the content only.
+        GlassPage(
+          child: GlassScaffold(
+            backgroundColor: const Color(0x00000000),
+            body: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeader(),
+                  if (_showTuning)
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                      child: SizedBox(
+                        height: 280,
+                        child: Container(
+                          decoration: BoxDecoration(
                             color:
-                                CupertinoColors.white.withValues(alpha: 0.1)),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildPremiumTuningPanel(),
-                              SizedBox(height: 16),
-                              _buildStandardTuningPanel(),
-                              SizedBox(height: 16),
-                              _buildDiagnosticsPanel(),
-                            ],
+                                CupertinoColors.black.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: CupertinoColors.white
+                                    .withValues(alpha: 0.1)),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SingleChildScrollView(
+                              padding: EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _buildPremiumTuningPanel(),
+                                  SizedBox(height: 16),
+                                  _buildStandardTuningPanel(),
+                                  SizedBox(height: 16),
+                                  _buildDiagnosticsPanel(),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              SizedBox(height: 8),
-              _buildColumnLabels(),
-              SizedBox(height: 4),
-              Expanded(child: _buildComparisonList()),
-            ],
+                  SizedBox(height: 8),
+                  _buildColumnLabels(),
+                  SizedBox(height: 4),
+                  Expanded(child: _buildComparisonList()),
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -345,27 +346,6 @@ class _ComparisonPageState extends State<_ComparisonPage> {
                     letterSpacing: -0.5,
                   ),
                 ),
-              ),
-              Row(
-                children: [
-                  Text('BG Sample',
-                      style: TextStyle(
-                          color: CupertinoColors.white.withValues(alpha: 0.70),
-                          fontSize: 12)),
-                  SizedBox(width: 8),
-                  SizedBox(
-                    height: 24,
-                    width: 40,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: CupertinoSwitch(
-                        value: _backgroundSampling,
-                        onChanged: (v) =>
-                            setState(() => _backgroundSampling = v),
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
@@ -751,8 +731,8 @@ class _ComparisonPageState extends State<_ComparisonPage> {
             ),
             standard: GlassSegmentedControl(
               useOwnLayer: true,
-              settings: _kGlassCard, // surface / background
-              indicatorSettings: _kGlassPill, // animated pill indicator
+              settings: _kGlassCard,
+              indicatorSettings: _kGlassPill,
               quality: GlassQuality.standard,
               segments: [
                 GlassSegment(label: 'Day'),
@@ -850,9 +830,8 @@ class _ComparisonPageState extends State<_ComparisonPage> {
             ),
             standardWidget: GlassSegmentedControl(
               useOwnLayer: true,
-              settings: _kGlassCard, // tab bar background glass
-              indicatorSettings:
-                  _kGlassPill, // the pill indicator glass ← tuned here
+              settings: _kGlassCard,
+              indicatorSettings: _kGlassPill,
               quality: GlassQuality.standard,
               segments: [
                 GlassSegment(icon: Icon(CupertinoIcons.home)),

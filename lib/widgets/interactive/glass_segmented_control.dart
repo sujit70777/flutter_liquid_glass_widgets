@@ -9,8 +9,8 @@ import '../../types/glass_quality.dart';
 import '../shared/adaptive_liquid_glass_layer.dart';
 import '../surfaces/glass_bottom_bar.dart' show MaskingQuality;
 import '../surfaces/glass_tab_bar.dart' show DividerSettings, GlassSegment;
-import 'shared/scrollable_segment_content.dart';
-import 'shared/segmented_control_internal.dart';
+import '../../src/widgets/interactive/scrollable_segment_content.dart';
+import '../../src/widgets/interactive/segmented_control_internal.dart';
 
 /// A glass morphism segmented control following Apple's design patterns.
 ///
@@ -345,7 +345,7 @@ class GlassSegmentedControl extends StatefulWidget {
 
   /// Border radius of the segmented control.
   ///
-  /// Defaults to [9999.0] — a capsule that matches the iOS 26 UISegmentedControl
+  /// Defaults to `9999.0` — a capsule that matches the iOS 26 UISegmentedControl
   /// appearance regardless of bar height. Set to a finite value (e.g. 16) to
   /// produce rounded-rectangle corners.
   final double borderRadius;
