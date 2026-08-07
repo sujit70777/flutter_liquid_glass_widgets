@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
 
 void main() {
   runApp(

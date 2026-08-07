@@ -4,8 +4,9 @@
 // run fast and can be executed in any CI environment.
 library;
 
+import 'package:flutter_liquid_glass_widgets/src/widgets/surfaces/tab_bar_layout_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_liquid_glass_widgets/widgets/surfaces/shared/tab_bar_layout_utils.dart';
+// import 'package:flutter_liquid_glass_widgets/widgets/surfaces/shared/tab_bar_layout_utils.dart';
 
 void main() {
   // ── Helpers ────────────────────────────────────────────────────────────────

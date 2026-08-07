@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_liquid_glass_widgets/src/widgets/surfaces/tab_bar_bottom_internal.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Direct relative import for the internal @visibleForTesting function
 // ignore: implementation_imports
-import 'package:flutter_liquid_glass_widgets/widgets/surfaces/shared/tab_bar_bottom_internal.dart';
 
 void main() {
   // ── buildIconShadows ────────────────────────────────────────────────────────

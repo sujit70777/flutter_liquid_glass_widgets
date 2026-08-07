@@ -1111,7 +1111,7 @@ production code, set it through `wrap()`.
   import 'package:liquid_glass_widgets/widgets/shared/glass_backdrop_scope.dart';
 
   // After (correct):
-  import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+  import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
   ```
 
 - **CHORE**: add CI and Codecov badges.

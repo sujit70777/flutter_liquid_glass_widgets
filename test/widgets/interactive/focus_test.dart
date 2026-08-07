@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/shared/glass_focus_region.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/widgets/shared/glass_focus_region.dart';
 
 void main() {
   testWidgets('Focus region test', (tester) async {
