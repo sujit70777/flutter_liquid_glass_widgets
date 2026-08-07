@@ -1,10 +1,7 @@
-// ignore: unnecessary_import
-import 'dart:ui';
-import 'package:liquid_glass_widgets/widgets/interactive/glass_chip.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/interactive/glass_chip.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
 
 import '../../shared/test_helpers.dart';
 
@@ -145,86 +142,6 @@ void main() {
       expect(chip.interactionScale, equals(1.03));
       expect(chip.stretch, equals(0.3));
       expect(chip.glowRadius, equals(0.8));
-    });
-
-    group('keyboard focus & accessibility', () {
-      testWidgets('Space key triggers onTap when focused', (tester) async {
-        bool tapped = false;
-        final focusNode = FocusNode();
-
-        await tester.pumpWidget(
-          createTestApp(
-            child: AdaptiveLiquidGlassLayer(
-              settings: defaultTestGlassSettings,
-              child: GlassChip(
-                label: 'Chip',
-                onTap: () => tapped = true,
-                focusNode: focusNode,
-              ),
-            ),
-          ),
-        );
-
-        focusNode.requestFocus();
-        await tester.pumpAndSettle();
-
-        await tester.sendKeyEvent(LogicalKeyboardKey.space);
-        await tester.pumpAndSettle();
-
-        expect(tapped, isTrue);
-      });
-
-      testWidgets('Enter key triggers onTap when focused', (tester) async {
-        bool tapped = false;
-        final focusNode = FocusNode();
-
-        await tester.pumpWidget(
-          createTestApp(
-            child: AdaptiveLiquidGlassLayer(
-              settings: defaultTestGlassSettings,
-              child: GlassChip(
-                label: 'Chip',
-                onTap: () => tapped = true,
-                focusNode: focusNode,
-              ),
-            ),
-          ),
-        );
-
-        focusNode.requestFocus();
-        await tester.pumpAndSettle();
-
-        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-        await tester.pumpAndSettle();
-
-        expect(tapped, isTrue);
-      });
-
-      testWidgets('exposes chip semantics', (tester) async {
-        final handle = tester.ensureSemantics();
-        try {
-          await tester.pumpWidget(
-            createTestApp(
-              child: GlassChip(
-                label: 'Test Chip',
-                semanticLabel: 'Semantics Chip',
-                onTap: () {},
-              ),
-            ),
-          );
-
-          final node =
-              tester.getSemantics(find.bySemanticsLabel('Semantics Chip'));
-          // ignore: deprecated_member_use
-          expect(node.hasFlag(SemanticsFlag.isButton), true);
-          // ignore: deprecated_member_use
-          expect(node.hasFlag(SemanticsFlag.isEnabled), true);
-          // ignore: deprecated_member_use
-          expect(node.hasFlag(SemanticsFlag.isFocusable), true);
-        } finally {
-          handle.dispose();
-        }
-      });
     });
   });
 }

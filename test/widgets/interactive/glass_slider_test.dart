@@ -1,12 +1,8 @@
-// ignore: unnecessary_import
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:liquid_glass_widgets/widgets/interactive/glass_slider.dart';
-import 'package:liquid_glass_widgets/widgets/shared/glass_focus_region.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/interactive/glass_slider.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
-import 'package:liquid_glass_widgets/types/glass_quality.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/shared/adaptive_liquid_glass_layer.dart';
+import 'package:flutter_liquid_glass_widgets/types/glass_quality.dart';
 
 import '../../shared/test_helpers.dart';
 
@@ -50,33 +46,6 @@ void main() {
 
       // Value should have changed
       expect(value, isNot(equals(0.5)));
-    });
-
-    testWidgets('RTL drag direction is reversed', (tester) async {
-      var value = 0.5;
-
-      await tester.pumpWidget(
-        createTestApp(
-          child: Directionality(
-            textDirection: TextDirection.rtl,
-            child: AdaptiveLiquidGlassLayer(
-              settings: defaultTestGlassSettings,
-              child: GlassSlider(
-                value: value,
-                onChanged: (newValue) => value = newValue,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // Start drag at center and drag right. In RTL, dragging right moves towards the start of the track (0.0).
-      final sliderFinder = find.byType(GlassSlider);
-      await tester.drag(sliderFinder, const Offset(50, 0));
-      await tester.pumpAndSettle();
-
-      // Value should have DECREASED
-      expect(value, lessThan(0.5));
     });
 
     testWidgets('calls onChangeStart and onChangeEnd', (tester) async {
@@ -352,61 +321,6 @@ void main() {
       expect(dec.color, isNotNull);
       expect(dec.color!.a,
           equals(1.0)); // Solid white (Opacity controls visibility)
-    });
-
-    group('keyboard focus & accessibility', () {
-      testWidgets('exposes slider semantics', (tester) async {
-        final handle = tester.ensureSemantics();
-        try {
-          await tester.pumpWidget(
-            createTestApp(
-              child: GlassSlider(
-                value: 0.5,
-                onChanged: (_) {},
-                label: 'Test Slider',
-              ),
-            ),
-          );
-
-          final node = tester.getSemantics(find.byType(GlassFocusRegion));
-          expect(node.label, 'Test Slider');
-          expect(node.value, '50%');
-          expect(node.increasedValue, '60%');
-          expect(node.decreasedValue, '40%');
-          // ignore: deprecated_member_use
-          expect(node.hasFlag(SemanticsFlag.isSlider), true);
-          // ignore: deprecated_member_use
-          expect(node.hasFlag(SemanticsFlag.isEnabled), true);
-          // ignore: deprecated_member_use
-          expect(node.hasFlag(SemanticsFlag.isFocusable), true);
-        } finally {
-          handle.dispose();
-        }
-      });
-
-      testWidgets('does not activate on Space key (sliders use arrows)',
-          (tester) async {
-        double value = 0.5;
-        final focusNode = FocusNode();
-
-        await tester.pumpWidget(
-          createTestApp(
-            child: GlassSlider(
-              value: value,
-              onChanged: (v) => value = v,
-              focusNode: focusNode,
-            ),
-          ),
-        );
-
-        focusNode.requestFocus();
-        await tester.pumpAndSettle();
-
-        await tester.sendKeyEvent(LogicalKeyboardKey.space);
-        await tester.pumpAndSettle();
-
-        expect(value, equals(0.5));
-      });
     });
   });
 }

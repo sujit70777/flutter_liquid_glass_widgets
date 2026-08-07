@@ -13,8 +13,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-import 'package:liquid_glass_widgets/src/widgets/surfaces/tab_bar_bottom_internal.dart'
+import 'package:flutter_liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:flutter_liquid_glass_widgets/widgets/surfaces/shared/tab_bar_bottom_internal.dart'
     show resolveBarLabelColor;
 
 /// Records the ambient brightness its build context sees — used as a tab
