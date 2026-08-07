@@ -20,6 +20,12 @@ export 'types/glass_specular_sharpness.dart'; // GlassSpecularSharpness enum
 // Setup and Configuration
 export 'liquid_glass_setup.dart';
 
+// Adaptive quality persistence — restore GlassAdaptiveScope's settled
+// GlassQuality across cold starts. See GlassQualityPersistence.auto().
+export 'src/adaptive/quality_store.dart'; // GlassQualityStore
+export 'src/adaptive/quality_persistence.dart'; // GlassQualityPersistence
+export 'src/adaptive/shared_preferences_quality_store.dart'; // SharedPreferencesQualityStore
+
 // Constants
 export 'constants/glass_defaults.dart';
 export 'constants/glass_shadow.dart';

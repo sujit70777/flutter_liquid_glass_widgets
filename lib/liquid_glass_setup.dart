@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,7 @@ import 'types/glass_quality.dart';
 import 'utils/accessibility_config.dart' as glass_config;
 import 'utils/glass_brightness.dart' show glassExternalBrightnessResolver;
 import 'utils/glass_performance_monitor.dart';
+import 'src/adaptive/quality_persistence.dart';
 import 'src/renderer/liquid_glass_renderer.dart';
 import 'src/renderer/shaders.dart';
 
@@ -113,9 +115,19 @@ class LiquidGlassWidgets {
   /// | `liquid_glass_geometry_blended.frag` | Geometry / SDF pass |
   /// | `liquid_glass_final_render.frag` | Final composite pass |
   /// | `progressive_blur.frag` | Graduated backdrop blur ([ProgressiveBlur]) |
+  ///
+  /// ### `qualityPersistence`
+  ///
+  /// Optional. Pass the same `GlassQualityPersistence` instance given to
+  /// [wrap]'s `qualityPersistence` parameter to *guarantee* its persisted
+  /// [GlassQuality] read completes before `runApp` — eliminating the
+  /// `GlassAdaptiveScope` warm-up benchmark's ~3-second jank window on every
+  /// cold start, not just most of them. See `GlassQualityPersistence` for
+  /// details and the best-effort fallback when this isn't provided.
   static Future<void> initialize({
     bool enablePerformanceMonitor = true,
     bool warmUpImpellerPipeline = true,
+    GlassQualityPersistence? qualityPersistence,
   }) async {
     debugPrint('[LiquidGlass] Initializing library...');
 
@@ -136,6 +148,9 @@ class LiquidGlassWidgets {
       // never need a separate preload call (it degrades to a uniform blur if the
       // shader can't load, so this never throws).
       ProgressiveBlur.preload(),
+      // Persisted GlassQuality read (if any) — awaited here so it's
+      // guaranteed ready by the time wrap() builds GlassAdaptiveScope.
+      if (qualityPersistence != null) qualityPersistence.ready.then((_) {}),
     ]);
 
     // 2. GPU pipeline warm-up — Android only, sequential after step 1.
@@ -245,12 +260,33 @@ class LiquidGlassWidgets {
   /// ### Scope nesting order (outermost → innermost → child)
   ///
   /// `GlassAdaptiveScope` (when enabled) → `GlassTheme` (when provided) → `child`
+  ///
+  /// **`qualityPersistence`** (optional)\
+  /// Zero-config alternative to manually wiring `adaptiveConfig.initialQuality`
+  /// + `onQualityChanged` to your own storage. Pass `GlassQualityPersistence.auto()`
+  /// to automatically restore the last settled [GlassQuality] on cold start and
+  /// persist it whenever it changes:
+  ///
+  /// ```dart
+  /// runApp(LiquidGlassWidgets.wrap(
+  ///   child: const MyApp(),
+  ///   adaptiveQuality: true,
+  ///   qualityPersistence: GlassQualityPersistence.auto(),
+  /// ));
+  /// ```
+  ///
+  /// An explicit `adaptiveConfig.initialQuality` / `onQualityChanged` always
+  /// takes precedence over persistence — this is purely additive. Ignored
+  /// when [adaptiveQuality] is `false`. See `GlassQualityPersistence` for how
+  /// to guarantee (rather than best-effort) a jank-free first cold start via
+  /// [initialize]'s `qualityPersistence` parameter.
   static Widget wrap({
     required Widget child,
     GlassThemeData? theme,
     bool respectSystemAccessibility = true,
     bool adaptiveQuality = false,
     GlassAdaptiveScopeConfig? adaptiveConfig,
+    GlassQualityPersistence? qualityPersistence,
 
     /// Optional brightness resolver for MaterialApp integration.
     ///
@@ -296,13 +332,23 @@ class LiquidGlassWidgets {
       // from the conservative standard starting point.
       final config = adaptiveConfig ?? const GlassAdaptiveScopeConfig();
 
+      // qualityPersistence only fills in gaps the caller left open — an
+      // explicit adaptiveConfig.initialQuality / onQualityChanged always wins.
+      final persistedQuality = qualityPersistence?.resolvedQualityOrNull;
+      final userOnQualityChanged = config.onQualityChanged;
+
       result = GlassAdaptiveScope(
         minQuality: config.minQuality,
         maxQuality: config.maxQuality,
-        initialQuality: config.initialQuality,
+        initialQuality: config.initialQuality ?? persistedQuality,
         targetFrameMs: config.targetFrameMs,
         allowStepUp: config.allowStepUp,
-        onQualityChanged: config.onQualityChanged,
+        onQualityChanged: qualityPersistence == null
+            ? config.onQualityChanged
+            : (from, to) {
+                userOnQualityChanged?.call(from, to);
+                unawaited(qualityPersistence.persist(to));
+              },
         onDiagnostic: config.onDiagnostic,
         debugLogDiagnostics: config.debugLogDiagnostics,
         child: result,

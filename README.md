@@ -44,7 +44,7 @@ https://github.com/user-attachments/assets/2fe28f46-96ad-459d-b816-e6d6001d90de
 - **Real frosted glass** — native two-pass Gaussian blur + shader refraction on Impeller; lightweight shader on Skia/Web
 - **Just works everywhere** — iOS, Android, macOS, Web, Windows, Linux; rendering path chosen automatically
 - **Adaptive quality** *(experimental)* — `GlassAdaptiveScope` benchmarks the device at startup and adjusts quality in real time: `minimal` on slow hardware, `standard` on mid-range, `premium` on fast devices. Degrades on thermal throttle, recovers when cool
-- **Minimal dependencies** — only `equatable`, `flutter_shaders`, and `logging` beyond the Flutter SDK
+- **Minimal dependencies** — only `equatable`, `flutter_shaders`, `logging`, and `shared_preferences` (for optional quality persistence) beyond the Flutter SDK
 - **One-line setup** — `LiquidGlassWidgets.wrap(child: myApp)` handles accessibility bridging, adaptive quality, and global theming; use `GlassScaffold` per screen for automatic backdrop isolation, z-ordering, edge fading, and status bar styling
 - **Content-aware brightness** — glass bars automatically flip between light and dark icons/labels based on the content scrolling behind them. One flag on `GlassScaffold`, matches iOS 26 behaviour
 - **Gyroscope lighting** — `GlassMotionScope` drives specular highlights from any `Stream<double>`
@@ -630,37 +630,64 @@ the app.
 automatically. If the scope is disposed and remounted (e.g. navigating away and
 back to the root), Phase 2 is not re-run — no extra code required.
 
-**Across cold starts**, use `onQualityChanged` + `initialQuality` with your
-preferred storage mechanism:
+**Across cold starts**, use `GlassQualityPersistence.auto()` — zero-config,
+built into the library, backed by `shared_preferences` under the hood:
 
 ```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final persistence = GlassQualityPersistence.auto();
 
-  // Load previously settled quality — avoids warmup jank on repeat launches.
-  final prefs = await SharedPreferences.getInstance();
-  final saved = prefs.getString('glass_quality');
-  final initial = saved != null
-      ? GlassQuality.values.byName(saved) // Dart 2.15+ built-in
-      : null; // null = run Phase 2 on first launch, then persist
-
-  await LiquidGlassWidgets.initialize();
+  // Optional but recommended: guarantees the persisted-quality read completes
+  // before runApp, so even the very first cold start after adding this is
+  // jank-free (not just subsequent ones).
+  await LiquidGlassWidgets.initialize(qualityPersistence: persistence);
 
   runApp(LiquidGlassWidgets.wrap(
     child: const MyApp(),
     adaptiveQuality: true,
-    adaptiveConfig: GlassAdaptiveScopeConfig(
-      initialQuality: initial,       // restore immediately — no warmup window
-      allowStepUp: true,             // allow recovery after thermal throttle
-      onQualityChanged: (_, to) =>   // persist whenever quality settles
-          prefs.setString('glass_quality', to.name),
-    ),
+    qualityPersistence: persistence, // restores + persists automatically
   ));
 }
 ```
 
-On first launch: `initial` is null → Phase 2 runs → quality settles → persisted.  
-On every subsequent launch: `initial` is non-null → Phase 2 skipped → no jank.
+On first launch: nothing persisted yet → Phase 2 runs → quality settles → saved.
+On every subsequent launch: the saved quality is restored immediately → Phase 2
+is skipped → no jank.
+
+`GlassQualityPersistence` is purely additive to `adaptiveConfig` — an explicit
+`adaptiveConfig.initialQuality` or `onQualityChanged` always takes precedence,
+so you can layer custom analytics on top without losing persistence:
+
+```dart
+qualityPersistence: persistence,
+adaptiveConfig: GlassAdaptiveScopeConfig(
+  onQualityChanged: (from, to) =>
+      analytics.log('glass_quality', {'from': from.name, 'to': to.name}),
+),
+```
+
+#### Advanced: custom storage
+
+To persist to something other than `shared_preferences` (Hive, a database, a
+platform channel, ...), implement `GlassQualityStore` and pass it to
+`GlassQualityPersistence`:
+
+```dart
+class MyQualityStore extends GlassQualityStore {
+  @override
+  Future<GlassQuality?> read() async => ...;
+
+  @override
+  Future<void> write(GlassQuality quality) async => ...;
+}
+
+final persistence = GlassQualityPersistence(MyQualityStore());
+```
+
+Or wire `onQualityChanged` + `adaptiveConfig.initialQuality` manually if you'd
+rather not use the `GlassQualityStore` abstraction at all — both parameters
+remain fully supported.
 
 ### GPU Budget Monitoring
 
@@ -866,7 +893,7 @@ flutter test --tags golden
 
 ## Dependencies
 
-Minimal runtime dependencies beyond the Flutter SDK: `equatable`, `flutter_shaders`, and `logging`.
+Minimal runtime dependencies beyond the Flutter SDK: `equatable`, `flutter_shaders`, `logging`, and `shared_preferences` (backs `GlassQualityPersistence.auto()` — see [Automatic Quality Adaptation](#automatic-quality-adaptation-experimental)).
 
 The glass rendering pipeline builds on the open-source work of [whynotmake-it](https://github.com/whynotmake-it). Their [`liquid_glass_renderer`](https://github.com/whynotmake-it/flutter_liquid_glass/tree/main/packages/liquid_glass_renderer) (MIT) has been vendored and extended with bug fixes, performance improvements, and shader optimisations.
 

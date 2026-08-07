@@ -53,7 +53,11 @@ a separate opt-in entry point, not part of the main import).
 `GlassAdaptiveScope` (auto quality tiering with thermal-aware step-down),
 `GlassPerformanceMonitor`, `GlassQuality`, and a VM service extension
 (`package:flutter_liquid_glass_widgets/glass_devtools_bridge.dart`) exposing
-live adaptive-quality diagnostics to external tooling.
+live adaptive-quality diagnostics to external tooling. `GlassQualityPersistence`
+(with a zero-config `.auto()` factory backed by `shared_preferences`, and a
+`GlassQualityStore` interface for custom storage) restores `GlassAdaptiveScope`'s
+settled quality across cold starts, eliminating the warm-up benchmark's jank
+window on repeat launches — wire it via `LiquidGlassWidgets.wrap(qualityPersistence: ...)`.
 
 **Effects & rendering primitives**
 `ProgressiveBlur`, `LiquidGlassLayer`, `LiquidGlassSettings`,

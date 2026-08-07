@@ -40,6 +40,11 @@ dependencies:
   # consumer at `pub get` time since Dart has no true optional/peer
   # dependencies.
   flutter_a11y_lens: ^0.0.1
+  # Backs GlassQualityPersistence.auto() / SharedPreferencesQualityStore.
+  # Exported from the main liquid_glass_widgets.dart barrel (unlike
+  # flutter_a11y_lens above) since qualityPersistence is a wrap() parameter,
+  # not an opt-in entry-point import — so it can't be made truly optional.
+  shared_preferences: ^2.3.0
 dev_dependencies:
   alchemist: ^0.14.0
   flutter_test:
