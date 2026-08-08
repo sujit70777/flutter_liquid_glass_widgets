@@ -26,6 +26,7 @@ import 'package:liquid_glass_widgets_example/demos/collapse_bar_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/buttons_and_shadows_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/content_aware_brightness_demo.dart';
 import 'package:liquid_glass_widgets_example/demos/indicator_parity_demo.dart';
+import 'package:liquid_glass_widgets_example/demos/quality_persistence_demo.dart';
 
 import 'package:liquid_glass_widgets_example/demos/google_maps_demo.dart'
     show PlatformViewDemo;
@@ -816,6 +817,19 @@ class _ExamplesTab extends StatelessWidget {
                       Color(0xFF5AC8FA),
                     ],
                     destination: const ContentAwareBrightnessDemo(),
+                  ),
+                  SizedBox(height: 14),
+
+                  _LargeDemoCard(
+                    title: 'Quality Persistence',
+                    subtitle:
+                        'Remember GlassAdaptiveScope\'s settled quality across cold starts',
+                    icon: CupertinoIcons.arrow_2_circlepath,
+                    gradient: const [
+                      Color(0xFF2E2A5C),
+                      Color(0xFF8E7CFF),
+                    ],
+                    destination: const QualityPersistenceDemo(),
                   ),
                   SizedBox(height: 14),
 

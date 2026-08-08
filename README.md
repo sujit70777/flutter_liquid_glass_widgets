@@ -20,6 +20,7 @@ https://github.com/user-attachments/assets/2fe28f46-96ad-459d-b816-e6d6001d90de
 ## Contents
 
 - [Features](#features)
+- [Why `flutter_liquid_glass_widgets`?](#why-flutter_liquid_glass_widgets) — how this differs from a typical glassmorphism package
 - [Installation](#installation)
 - [Quick Start](#quick-start) — get glass on screen in two steps
 - [Examples](#examples) — full runnable demo apps
@@ -49,6 +50,30 @@ https://github.com/user-attachments/assets/2fe28f46-96ad-459d-b816-e6d6001d90de
 - **Content-aware brightness** — glass bars automatically flip between light and dark icons/labels based on the content scrolling behind them. One flag on `GlassScaffold`, matches iOS 26 behaviour
 - **Gyroscope lighting** — `GlassMotionScope` drives specular highlights from any `Stream<double>`
 - **WCAG-compliant by default** — Reduce Motion and Reduce Transparency are respected automatically; no setup required
+- **Cross-launch quality persistence** — `GlassQualityPersistence.auto()` remembers the device's settled quality tier across cold starts, skipping `GlassAdaptiveScope`'s ~3-second warm-up benchmark on every subsequent launch
+
+
+## Why `flutter_liquid_glass_widgets`?
+
+Most "glassmorphism" packages for Flutter are a `BackdropFilter` blur plus a
+semi-transparent `Container` — a flat approximation of glass. This package
+takes a different approach, closer to how iOS 26 actually renders Liquid
+Glass:
+
+| | Typical glassmorphism package | `flutter_liquid_glass_widgets` |
+|---|---|---|
+| **Rendering** | `BackdropFilter` blur + translucent color | Custom fragment shaders — real refraction, specular highlights, chromatic aberration, Fresnel edge lighting |
+| **Motion** | Opacity/blur tweens | [Liquid Morph Engine](#liquid-morph-engine) — a standalone physics system (spring dynamics, teardrop morphing) independent of any single widget |
+| **Performance across devices** | One fixed look, no device awareness | Three [quality tiers](#glass-quality-modes) (`minimal` / `standard` / `premium`) chosen automatically per device, with [adaptive runtime tuning](#automatic-quality-adaptation-experimental) and [cross-launch persistence](#eliminating-repeat-warmup-jank-recommended-for-production) so the benchmark only ever runs once per device |
+| **Accessibility** | Usually bolted on, if present at all | Reduce Motion / Reduce Transparency respected automatically everywhere, no per-widget setup — see [Accessibility](#accessibility) |
+| **Scope** | Usually a handful of container widgets | A full navigation-chrome system — scaffold, app bar, tab bar, sheets, menus, command palette — built around Apple's own [glass-vs-content composition rules](#glass-vs-content--design-philosophy) |
+| **GPU safety net** | None | `GlassPerformanceMonitor` watches raster frame budget in debug/profile builds and tells you which widget to change |
+
+The trade-off: this is a heavier, more opinionated library than a simple blur
+wrapper. If you need one translucent card, a `BackdropFilter` is enough. If
+you're building navigation chrome that should look and behave like iOS 26's
+Liquid Glass — including on Android, Web, and desktop — that's what this
+package is for.
 
 
 ## Installation
@@ -190,7 +215,7 @@ cd example && flutter pub get && flutter run
 
 ### [Component Demos](example/lib/demos/) — Copy-Pasteable Examples
 
-Eight focused, self-contained demos — one widget, one file, runnable standalone:
+Focused, self-contained demos — one feature, one file, runnable standalone:
 
 | Demo | Run command (from `example/`) |
 |---|---|
@@ -205,6 +230,7 @@ Eight focused, self-contained demos — one widget, one file, runnable standalon
 | `nav_bar_patterns_demo.dart` — GlassScaffold layout patterns | `cd example && flutter run -t lib/demos/nav_bar_patterns_demo.dart` |
 | `content_aware_brightness_demo.dart` — light/dark bar adaptation on scroll | `cd example && flutter run -t lib/demos/content_aware_brightness_demo.dart` |
 | `indicator_parity_demo.dart` — all four pill widgets side-by-side with live pinch/expansion/tint sliders | `cd example && flutter run -t lib/demos/indicator_parity_demo.dart` |
+| `quality_persistence_demo.dart` — proves `GlassQualityPersistence` restores settled quality across cold starts, with live latency numbers | `cd example && flutter run -t lib/demos/quality_persistence_demo.dart` |
 
 
 ## Glass vs Content — Design Philosophy
@@ -665,6 +691,11 @@ void main() async {
 On first launch: nothing persisted yet → Phase 2 runs → quality settles → saved.
 On every subsequent launch: the saved quality is restored immediately → Phase 2
 is skipped → no jank.
+
+> See `example/lib/demos/quality_persistence_demo.dart` — it writes a quality
+> to disk, then reads it back through a brand new `GlassQualityPersistence`
+> instance (exactly what a real relaunch does) and shows the actual read
+> latency next to the ~3000ms benchmark it replaces.
 
 `GlassQualityPersistence` is purely additive to `adaptiveConfig` — an explicit
 `adaptiveConfig.initialQuality` or `onQualityChanged` always takes precedence,
